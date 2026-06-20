@@ -82,6 +82,7 @@ export function renderLoginModal(container) {
     }
     try {
       await completeSignup(pendingUser.uid, nickname, pendingUser.photoURL || '');
+      pendingUser = null;
       modal()?.hide();
     } catch (err) {
       alert('회원가입에 실패했어요. 다시 시도해주세요.');
