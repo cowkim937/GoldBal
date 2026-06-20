@@ -75,6 +75,36 @@ export const ROUTES = {
 /** Firestore 쿼리 제한 */
 export const PAGE_SIZE = 24;
 
+/** AI 이미지 생성 설정 */
+export const AI_IMAGE = {
+  SET: {
+    SIZE: '480x320',
+    QUALITY: 'low',
+    CREDITS: 3,
+  },
+  THUMBNAIL: {
+    SIZE: '1024x1024',
+    QUALITY: 'high',
+    CREDITS: 10,
+  },
+};
+
+/** 크레딧 시스템 */
+export const CREDITS = {
+  NEW_USER_DEFAULT: 100,
+  PRICE_PER_CREDIT: 10, // KRW (VAT 포함)
+  MIN_PURCHASE: 100,
+  MAX_PURCHASE: 5000,
+};
+
+/** AI 프롬프트 템플릿 */
+export const AI_PROMPTS = {
+  SET: (name, description) =>
+    `밸런스 게임 아이템 이미지. "${name}" 항목. ${description ? `설명: ${description}.` : ''} 상품 카탈로그 스타일의 깔끔한 일러스트. 배경은 심플하게.`,
+  THUMBNAIL: (title, description, budget) =>
+    `밸런스 게임 '${title}'의 썸네일 배너 이미지. ${description ? `게임 설명: ${description}.` : ''} 예산: ${budget}. 게임의 분위기를 담은 화려한 배너 스타일. 한국어 텍스트 없이 이미지만 생성.`,
+};
+
 /** localStorage 키 */
 export const STORAGE_KEYS = {
   USER: 'hwangbal_user',
