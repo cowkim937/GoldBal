@@ -1,8 +1,7 @@
 import { app, firebaseReady } from './config.js';
 
-const isDev = firebaseReady === false;
+const r = (real, mock) => (...args) => (firebaseReady ? real : mock)(...args);
 
-// Real Firebase
 import {
   getFirestore as _getFirestore,
   collection as _collection,
@@ -18,13 +17,11 @@ import {
   orderBy as _orderBy,
   limit as _limit,
   startAfter as _startAfter,
-  increment as _increment,
   runTransaction as _runTransaction,
-  Timestamp as _Timestamp,
+  increment as _increment,
   serverTimestamp as _serverTimestamp,
 } from 'firebase/firestore';
 
-// Mock
 import {
   mockCollection,
   mockDoc,
@@ -46,25 +43,24 @@ import {
 let _db = null;
 
 export function getDb() {
-  if (isDev) return 'mock-db';
+  if (!firebaseReady) return 'mock-db';
   if (!_db) _db = _getFirestore(app);
   return _db;
 }
 
-export const collection = isDev ? mockCollection : _collection;
-export const doc = isDev ? mockDoc : _doc;
-export const getDoc = isDev ? mockGetDoc : _getDoc;
-export const getDocs = isDev ? mockGetDocs : _getDocs;
-export const setDoc = isDev ? mockSetDoc : _setDoc;
-export const updateDoc = isDev ? mockUpdateDoc : _updateDoc;
-export const deleteDoc = isDev ? mockDeleteDoc : _deleteDoc;
-export const addDoc = isDev ? mockAddDoc : _addDoc;
-export const query = isDev ? mockQuery : _query;
-export const where = isDev ? mockWhere : _where;
-export const orderBy = isDev ? mockOrderBy : _orderBy;
-export const limit = isDev ? mockLimit : _limit;
-export const startAfter = isDev ? (() => {}) : _startAfter;
-export const increment = isDev ? mockIncrement : _increment;
-export const runTransaction = isDev ? mockRunTransaction : _runTransaction;
-export const Timestamp = isDev ? { now: () => new Date() } : _Timestamp;
-export const serverTimestamp = isDev ? mockServerTimestamp : _serverTimestamp;
+export const collection = r(_collection, mockCollection);
+export const doc = r(_doc, mockDoc);
+export const getDoc = r(_getDoc, mockGetDoc);
+export const getDocs = r(_getDocs, mockGetDocs);
+export const setDoc = r(_setDoc, mockSetDoc);
+export const updateDoc = r(_updateDoc, mockUpdateDoc);
+export const deleteDoc = r(_deleteDoc, mockDeleteDoc);
+export const addDoc = r(_addDoc, mockAddDoc);
+export const query = r(_query, mockQuery);
+export const where = r(_where, mockWhere);
+export const orderBy = r(_orderBy, mockOrderBy);
+export const limit = r(_limit, mockLimit);
+export const increment = r(_increment, mockIncrement);
+export const serverTimestamp = r(_serverTimestamp, mockServerTimestamp);
+export const runTransaction = r(_runTransaction, mockRunTransaction);
+export const startAfter = (...args) => (firebaseReady ? _startAfter(...args) : undefined);

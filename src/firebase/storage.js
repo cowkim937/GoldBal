@@ -1,6 +1,6 @@
 import { app, firebaseReady } from './config.js';
 
-const isDev = firebaseReady === false;
+const r = (real, mock) => (...args) => (firebaseReady ? real : mock)(...args);
 
 import {
   getStorage as _getStorage,
@@ -20,12 +20,12 @@ import {
 let _storage = null;
 
 export function getStorageInstance() {
-  if (isDev) return 'mock-storage';
+  if (!firebaseReady) return 'mock-storage';
   if (!_storage) _storage = _getStorage(app);
   return _storage;
 }
 
-export const ref = isDev ? mockStorageRef : _ref;
-export const uploadBytes = isDev ? mockUploadBytes : _uploadBytes;
-export const getDownloadURL = isDev ? mockGetDownloadURL : _getDownloadURL;
-export const deleteObject = isDev ? mockDeleteObject : _deleteObject;
+export const ref = r(_ref, mockStorageRef);
+export const uploadBytes = r(_uploadBytes, mockUploadBytes);
+export const getDownloadURL = r(_getDownloadURL, mockGetDownloadURL);
+export const deleteObject = r(_deleteObject, mockDeleteObject);

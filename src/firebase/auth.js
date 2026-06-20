@@ -22,7 +22,7 @@ function ensureAuthAvailable() {
   }
 
   if (!app.options?.authDomain) {
-    throw createConfigError('Firebase authDomain 설정이 비어있어요. VITE_FIREBASE_AUTH_DOMAIN 값을 확인해주세요.');
+    throw createConfigError('Firebase authDomain 설정이 비어있어요. Cloudflare Pages 대시보드에서 FIREBASE_AUTH_DOMAIN을 확인해주세요.');
   }
 }
 

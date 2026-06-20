@@ -4,6 +4,7 @@ window.bootstrap = bootstrap;
 
 import './style.css';
 
+import { initFirebase } from './firebase/config.js';
 import { registerRoute, navigateTo } from './utils/router.js';
 import { renderHeader } from './components/Header.js';
 import { renderFooter } from './components/Footer.js';
@@ -41,29 +42,35 @@ function renderShell() {
   app.appendChild(modalContainer);
 }
 
-renderShell();
+async function initApp() {
+  await initFirebase();
 
-renderHeader(document.getElementById('header-container'));
-renderFooter(document.getElementById('footer-container'));
-renderLoginModal(document.getElementById('modal-container'));
-renderCreditShopModal(document.getElementById('modal-container'));
+  renderShell();
 
-registerRoute(ROUTES.HOME, homePage);
-registerRoute(ROUTES.CREATE, createPage);
-registerRoute('/game/:id/edit', createPage);
-registerRoute('/game/:id', gameDetailPage);
-registerRoute('/profile/:uid', profilePage);
-registerRoute(ROUTES.SEARCH, searchPage);
-registerRoute('/:page', staticPage);
+  renderHeader(document.getElementById('header-container'));
+  renderFooter(document.getElementById('footer-container'));
+  renderLoginModal(document.getElementById('modal-container'));
+  renderCreditShopModal(document.getElementById('modal-container'));
 
-onUserChange(() => {
-  updateAuthUI();
-});
+  registerRoute(ROUTES.HOME, homePage);
+  registerRoute(ROUTES.CREATE, createPage);
+  registerRoute('/game/:id/edit', createPage);
+  registerRoute('/game/:id', gameDetailPage);
+  registerRoute('/profile/:uid', profilePage);
+  registerRoute(ROUTES.SEARCH, searchPage);
+  registerRoute('/:page', staticPage);
 
-try {
-  initAuth();
-} catch (err) {
-  console.warn('Firebase Auth 초기화 실패:', err.message);
+  onUserChange(() => {
+    updateAuthUI();
+  });
+
+  try {
+    initAuth();
+  } catch (err) {
+    console.warn('Firebase Auth 초기화 실패:', err.message);
+  }
+
+  navigateTo(window.location.pathname || '/');
 }
 
-navigateTo(window.location.pathname || '/');
+initApp();
