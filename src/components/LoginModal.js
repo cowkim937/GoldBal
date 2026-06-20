@@ -58,8 +58,13 @@ export function renderLoginModal(container) {
       const user = await handleGoogleLogin();
       showStep2(user);
     } catch (err) {
-      if (err.code !== 'auth/popup-closed-by-user') {
-        alert('로그인에 실패했어요. 다시 시도해주세요.');
+      if (err.code === 'auth/popup-closed-by-user') return;
+      if (err.code === 'auth/unauthorized-domain') {
+        alert('현재 도메인이 Firebase에 등록되지 않았어요.\n\nFirebase Console → Authentication → Settings → 승인된 도메인에\n"goldbalance.cowkim937.workers.dev"를 추가해주세요.');
+      } else if (err.code === 'auth/operation-not-allowed') {
+        alert('Google 로그인이 활성화되지 않았어요.\n\nFirebase Console → Authentication → Sign-in method → Google 사용 설정');
+      } else {
+        alert('로그인 실패: ' + (err.message || err.code || '알 수 없는 오류'));
       }
     }
   });
