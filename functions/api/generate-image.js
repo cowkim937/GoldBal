@@ -12,6 +12,10 @@ export default {
       });
     }
 
+    if (url.pathname === '/api/health' && request.method === 'GET') {
+      return handleHealth(env);
+    }
+
     if (url.pathname === '/api/firebase-config' && request.method === 'GET') {
       return handleFirebaseConfig(env);
     }
@@ -23,6 +27,15 @@ export default {
     return env.ASSETS.fetch(request);
   },
 };
+
+function handleHealth(env) {
+  const status = {
+    worker: 'running',
+    openai: !!env.OPENAI_API_KEY,
+    firebase: !!(env.FIREBASE_API_KEY && env.FIREBASE_AUTH_DOMAIN && env.FIREBASE_PROJECT_ID && env.FIREBASE_APP_ID),
+  };
+  return json(status, 200);
+}
 
 function handleFirebaseConfig(env) {
   const config = {

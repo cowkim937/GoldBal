@@ -14,7 +14,7 @@ async function callGenerateImage(prompt, size, quality) {
     });
   } catch (err) {
     console.error('AI 이미지 API 호출 실패 (네트워크):', err.message);
-    throw new Error('서버에 연결할 수 없어요. 네트워크 상태를 확인해주세요.');
+    throw new Error('서버에 연결할 수 없어요. /api/health 를 확인해주세요.');
   }
 
   let data;
