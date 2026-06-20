@@ -3,7 +3,8 @@ import { createGame, uploadGameThumbnail, updateGame, uploadCellImage, getGame }
 import { processImageFile } from '../utils/image-utils.js';
 import { setMetaTags } from '../utils/seo.js';
 import { navigateTo } from '../utils/router.js';
-import { CATEGORIES, BUDGET_UNITS, X_COUNT, Y_COUNT } from '../utils/constants.js';
+import { CATEGORIES, BUDGET_UNITS, X_COUNT, Y_COUNT, AI_IMAGE } from '../utils/constants.js';
+import { generateSetImage, generateThumbnailImage } from '../services/ai-image-service.js';
 
 let xCount = 4;
 let yCount = 3;
@@ -211,8 +212,16 @@ function renderForm(container, isEdit) {
               <div class="card-body p-4">
                 <h5 class="fw-bold mb-3">썸네일</h5>
                 <div class="mb-3">
-                  <input type="file" class="form-control" id="thumbnail-input" accept="image/*">
-                  <div class="small text-muted mt-1">권장: 1200x630px, 최대 2MB, WEBP 변환</div>
+                  <div class="d-flex gap-2 align-items-end">
+                    <div class="flex-grow-1">
+                      <input type="file" class="form-control" id="thumbnail-input" accept="image/*">
+                      <div class="small text-muted mt-1">권장: 1200x630px, 최대 2MB, WEBP 변환</div>
+                    </div>
+                    <button type="button" class="btn btn-outline-success btn-sm flex-shrink-0" id="btn-ai-thumbnail">
+                      🤖 AI 생성
+                    </button>
+                  </div>
+                  <div class="small text-muted mt-1" id="thumbnail-ai-cost">AI 생성 시 ${AI_IMAGE.THUMBNAIL.CREDITS} 크레딧 소모 (1024×1024 고품질)</div>
                 </div>
                 <div id="thumbnail-preview" class="${cellData['_thumbnailUrl'] ? '' : 'd-none'}">
                   <img class="img-fluid rounded shadow-sm" style="max-height:200px;" id="thumbnail-img" src="${cellData['_thumbnailUrl'] || ''}">
@@ -268,6 +277,8 @@ function setupCreatePage() {
   document.getElementById('budget-unit').addEventListener('change', updatePreview);
 
   document.getElementById('thumbnail-input').addEventListener('change', handleThumbnailPreview);
+
+  document.getElementById('btn-ai-thumbnail')?.addEventListener('click', handleAIThumbnail);
 
   document.getElementById('game-form').addEventListener('submit', handleSubmit);
 
@@ -325,9 +336,13 @@ function showSetModal(cellKey) {
                       <div class="modal-set-preview mb-2 text-center" style="height:100px;overflow:hidden;border-radius:8px;background:#f0f0f4;">
                         ${set.image ? `<img src="${set.image}" style="width:100%;height:100%;object-fit:cover;">` : `<div class="d-flex align-items-center justify-content-center h-100 text-muted small">이미지 없음</div>`}
                       </div>
-                      <input type="file" class="form-control form-control-sm modal-set-image" accept="image/*" data-setidx="${idx}">
-                      <div class="small text-muted mt-1">최대 2MB, WEBP 변환</div>
-                    </div>
+                       <input type="file" class="form-control form-control-sm modal-set-image" accept="image/*" data-setidx="${idx}">
+                       <div class="small text-muted mt-1">최대 2MB, WEBP 변환</div>
+                       <button type="button" class="btn btn-outline-success btn-sm w-100 mt-1 modal-ai-set-btn" data-setidx="${idx}">
+                         🤖 AI 생성
+                       </button>
+                       <div class="small text-muted mt-1 text-center modal-ai-set-cost" data-setidx="${idx}">${AI_IMAGE.SET.CREDITS} 크레딧 소모</div>
+                     </div>
                     <div class="col-md-9">
                       <input type="text" class="form-control form-control-sm mb-2 modal-set-name" placeholder="이름" data-setidx="${idx}" value="${set.name || ''}">
                       <textarea class="form-control form-control-sm modal-set-desc" placeholder="설명" data-setidx="${idx}" rows="2">${set.description || ''}</textarea>
@@ -388,6 +403,45 @@ function showSetModal(cellKey) {
         const preview = e.target.closest('.set-modal-item').querySelector('.modal-set-preview');
         preview.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;">`;
       } catch (err) { alert(err.message); }
+    });
+  });
+
+  modalEl.querySelectorAll('.modal-ai-set-btn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const idx = parseInt(btn.dataset.setidx);
+      const item = btn.closest('.set-modal-item');
+      const nameInput = item.querySelector('.modal-set-name');
+      const descInput = item.querySelector('.modal-set-desc');
+      const name = nameInput?.value?.trim() || '';
+      const description = descInput?.value?.trim() || '';
+
+      if (!name) {
+        alert('AI 이미지를 생성하려면 이름을 입력해주세요.');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>생성 중...';
+
+      try {
+        const { blob, remaining } = await generateSetImage(name, description);
+        const url = URL.createObjectURL(blob);
+        ensureSetAtIndex(cellKey, idx);
+        if (cellData[cellKey].sets[idx].image) {
+          imageBlobs.delete(cellData[cellKey].sets[idx].image);
+          URL.revokeObjectURL(cellData[cellKey].sets[idx].image);
+        }
+        cellData[cellKey].sets[idx].image = url;
+        imageBlobs.set(url, blob);
+        const preview = item.querySelector('.modal-set-preview');
+        preview.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;">`;
+        alert(`이미지가 생성되었어요! (잔여 크레딧: ${remaining})`);
+      } catch (err) {
+        alert(err.message || '이미지 생성에 실패했어요.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🤖 AI 생성';
+      }
     });
   });
 
@@ -637,6 +691,37 @@ async function handleThumbnailPreview(e) {
     document.getElementById('thumbnail-img').src = url;
   } catch (err) {
     alert(err.message);
+  }
+}
+
+async function handleAIThumbnail() {
+  const title = document.getElementById('game-title')?.value?.trim();
+  if (!title) {
+    alert('먼저 제목을 입력해주세요.');
+    return;
+  }
+
+  const description = document.getElementById('game-description')?.value?.trim() || '';
+  const budgetValue = document.getElementById('budget-value')?.value || '0';
+  const budgetUnit = document.getElementById('budget-unit')?.value || '만원';
+
+  const btn = document.getElementById('btn-ai-thumbnail');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>생성 중...';
+
+  try {
+    const { blob, remaining } = await generateThumbnailImage(title, description, budgetValue, budgetUnit);
+    thumbnailBlob = blob;
+    const url = URL.createObjectURL(blob);
+    const preview = document.getElementById('thumbnail-preview');
+    preview.classList.remove('d-none');
+    document.getElementById('thumbnail-img').src = url;
+    alert(`썸네일이 생성되었어요! (잔여 크레딧: ${remaining})`);
+  } catch (err) {
+    alert(err.message || '썸네일 생성에 실패했어요.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🤖 AI 생성';
   }
 }
 
