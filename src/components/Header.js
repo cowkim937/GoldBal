@@ -26,7 +26,8 @@ export function renderHeader(container) {
             </li>
           </ul>
           <div class="d-flex align-items-center gap-2" id="auth-section">
-            <span class="badge bg-warning text-dark d-flex align-items-center gap-1" id="credit-badge" style="display:none;">
+            <span class="d-flex align-items-center gap-1 rounded-pill px-3" id="credit-badge"
+                  style="display:none; background:#dcedc8; height:38px; cursor:pointer; font-size:0.875rem; font-weight:500;">
               💰 <span id="credit-amount">0</span>
             </span>
             <div class="dropdown" id="user-menu" style="display:none;">
