@@ -1,4 +1,4 @@
-import { getGame, incrementViewCount, incrementPlayCount } from '../services/game-service.js';
+import { getGame, incrementViewCount, incrementPlayCount, deleteGame } from '../services/game-service.js';
 import { toggleLike, checkLike } from '../services/like-service.js';
 import { savePlayResult } from '../services/play-service.js';
 import { getCurrentUser } from '../services/auth-service.js';
@@ -67,9 +67,15 @@ function renderGame(container, game) {
                 <h2 class="fw-bold mb-1">${game.title || '제목 없음'}</h2>
                 <p class="text-muted mb-0">${game.description || ''}</p>
               </div>
-              <button class="btn btn-outline-danger btn-sm like-btn" id="btn-like">
-                ❤ <span id="like-count">${game.likeCount || 0}</span>
-              </button>
+              <div class="d-flex gap-2 align-items-start">
+                ${isGameOwner(game) ? `
+                  <a href="/game/${game.id}/edit" class="btn btn-outline-secondary btn-sm" data-link>✏️ 수정</a>
+                  <button class="btn btn-outline-danger btn-sm" id="btn-delete-game">🗑 삭제</button>
+                ` : ''}
+                <button class="btn btn-outline-danger btn-sm like-btn" id="btn-like">
+                  ❤ <span id="like-count">${game.likeCount || 0}</span>
+                </button>
+              </div>
             </div>
 
             <div class="d-flex flex-wrap gap-2 mb-4">
@@ -184,6 +190,12 @@ function renderGameTable(game) {
   return html;
 }
 
+function isGameOwner(game) {
+  const user = getCurrentUser();
+  if (!user) return false;
+  return user.uid === game.createdBy || user.role === 'admin';
+}
+
 function setupGameEvents(game) {
   document.querySelectorAll('.game-cell').forEach((card) => {
     card.addEventListener('click', () => {
@@ -214,6 +226,11 @@ function setupGameEvents(game) {
   if (likeBtn) {
     loadLikeStatus(game.id);
     likeBtn.addEventListener('click', () => handleLike(game.id));
+  }
+
+  const deleteBtn = document.getElementById('btn-delete-game');
+  if (deleteBtn) {
+    deleteBtn.addEventListener('click', () => handleDeleteGame(game));
   }
 }
 
@@ -304,17 +321,28 @@ async function handleShowResult(game) {
     if (col === undefined) continue;
 
     const cell = game.cells?.find((c) => c.row === y && c.col === col);
-    const image = game.randomMode && cell?.images?.length
-      ? cell.images[Math.floor(Math.random() * cell.images.length)]
-      : (cell?.images?.[0] || null);
+    let selectedName, selectedDesc, selectedImage;
+
+    if (game.randomMode && cell?.sets?.length) {
+      const randomSet = cell.sets[Math.floor(Math.random() * cell.sets.length)];
+      selectedName = randomSet.name || '';
+      selectedDesc = randomSet.description || '';
+      selectedImage = randomSet.image || null;
+    } else {
+      selectedName = cell?.name || '';
+      selectedDesc = cell?.description || '';
+      selectedImage = game.randomMode && cell?.images?.length
+        ? cell.images[Math.floor(Math.random() * cell.images.length)]
+        : (cell?.images?.[0] || null);
+    }
 
     result.selections.push({
       row: y, col,
       yLabel: game.yLabels?.[y] || `항목 ${y + 1}`,
       xLabel: game.xLabels?.[col] || `단계 ${col + 1}`,
-      name: cell?.name || '',
-      description: cell?.description || '',
-      image,
+      name: selectedName,
+      description: selectedDesc,
+      image: selectedImage,
       price: game.priceRow?.[col] || 0,
     });
   }
@@ -477,5 +505,17 @@ async function handleLike(gameId) {
     }
   } catch (err) {
     console.error('Failed to toggle like:', err);
+  }
+}
+
+async function handleDeleteGame(game) {
+  if (!confirm('정말 이 게임을 삭제할까요? 되돌릴 수 없어요.')) return;
+
+  try {
+    await deleteGame(game.id);
+    navigateTo('/');
+  } catch (err) {
+    console.error('Failed to delete game:', err);
+    alert('삭제에 실패했어요.');
   }
 }

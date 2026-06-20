@@ -48,6 +48,7 @@ renderLoginModal(document.getElementById('modal-container'));
 
 registerRoute(ROUTES.HOME, homePage);
 registerRoute(ROUTES.CREATE, createPage);
+registerRoute('/game/:id/edit', createPage);
 registerRoute('/game/:id', gameDetailPage);
 registerRoute('/profile/:uid', profilePage);
 registerRoute(ROUTES.SEARCH, searchPage);

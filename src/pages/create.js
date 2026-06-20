@@ -81,14 +81,28 @@ function prefillFromGame(game) {
 
   for (const cell of (game.cells || [])) {
     const key = `cell_${cell.row}_${cell.col}`;
-    cellData[key] = {
-      name: cell.name || '',
-      description: cell.description || '',
-      images: (cell.images || []).map((url, i) => {
-        existingImages.set(key + '_' + i, url);
-        return url;
-      }),
-    };
+    if (isRandomMode && cell.sets) {
+      cellData[key] = {
+        name: '',
+        description: '',
+        images: [],
+        sets: cell.sets.map((s, i) => ({
+          image: s.image || '',
+          name: s.name || '',
+          description: s.description || '',
+        })),
+      };
+    } else {
+      cellData[key] = {
+        name: cell.name || '',
+        description: cell.description || '',
+        images: (cell.images || []).map((url, i) => {
+          existingImages.set(key + '_' + i, url);
+          return url;
+        }),
+        sets: [],
+      };
+    }
   }
 }
 
@@ -226,12 +240,6 @@ function renderForm(container, isEdit) {
   `;
 }
 
-  setupCreatePage();
-  setMetaTags({ title: '게임 만들기', description: '나만의 밸런스 게임을 만들어보세요!' });
-
-  return () => {};
-}
-
 function setupCreatePage() {
   const xSlider = document.getElementById('x-count');
   const ySlider = document.getElementById('y-count');
@@ -271,6 +279,151 @@ function updatePreview() {
   const budgetValue = document.getElementById('budget-value').value || '0';
   const budgetUnit = document.getElementById('budget-unit').value;
   document.getElementById('preview-budget').textContent = `${budgetValue} ${budgetUnit}`;
+}
+
+function showSetModal(cellKey) {
+  // Force close any existing modals and clean backdrops
+  document.querySelectorAll('.modal.show').forEach(el => {
+    const inst = bootstrap.Modal.getInstance(el);
+    if (inst) inst.hide();
+  });
+  document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+  document.body.classList.remove('modal-open');
+  document.body.style.overflow = '';
+  
+  ensureCellSets(cellKey);
+  const sets = cellData[cellKey].sets || [];
+  if (sets.length === 0) {
+    sets.push({ image: '', name: '', description: '' });
+  }
+  const modalId = 'set-modal-' + cellKey.replace(/[^a-z0-9]/g, '_');
+
+  const existing = document.getElementById(modalId);
+  if (existing) existing.remove();
+
+  let modalHtml = `
+    <div class="modal fade" id="${modalId}" tabindex="-1">
+      <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow">
+          <div class="modal-header bg-primary bg-opacity-10 border-0">
+            <h5 class="modal-title fw-bold">📦 세트 설정 (${sets.length}개)</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body py-3">
+            <div class="set-modal-list">`;
+
+  sets.forEach((set, idx) => {
+    modalHtml += `
+              <div class="card shadow-sm mb-3 set-modal-item" data-setidx="${idx}">
+                <div class="card-body p-3">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="badge bg-secondary">세트 ${idx + 1}</span>
+                    <button type="button" class="btn btn-sm btn-outline-danger modal-remove-set-btn" data-setidx="${idx}" style="padding:2px 8px;font-size:12px;">✕</button>
+                  </div>
+                  <div class="row g-3">
+                    <div class="col-md-3">
+                      <div class="modal-set-preview mb-2 text-center" style="height:100px;overflow:hidden;border-radius:8px;background:#f0f0f4;">
+                        ${set.image ? `<img src="${set.image}" style="width:100%;height:100%;object-fit:cover;">` : `<div class="d-flex align-items-center justify-content-center h-100 text-muted small">이미지 없음</div>`}
+                      </div>
+                      <input type="file" class="form-control form-control-sm modal-set-image" accept="image/*" data-setidx="${idx}">
+                      <div class="small text-muted mt-1">최대 2MB, WEBP 변환</div>
+                    </div>
+                    <div class="col-md-9">
+                      <input type="text" class="form-control form-control-sm mb-2 modal-set-name" placeholder="이름" data-setidx="${idx}" value="${set.name || ''}">
+                      <textarea class="form-control form-control-sm modal-set-desc" placeholder="설명" data-setidx="${idx}" rows="2">${set.description || ''}</textarea>
+                    </div>
+                  </div>
+                </div>
+              </div>`;
+  });
+
+  modalHtml += `
+            </div>
+            <button type="button" class="btn btn-outline-primary btn-sm w-100 modal-add-set-btn">
+              + 세트 추가
+            </button>
+          </div>
+          <div class="modal-footer border-0">
+            <button type="button" class="btn btn-primary px-4" data-bs-dismiss="modal">완료</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+  const modalEl = document.getElementById(modalId);
+  const modal = new bootstrap.Modal(modalEl);
+  modal.show();
+
+  modalEl.querySelectorAll('.modal-set-name').forEach((input) => {
+    input.addEventListener('input', (e) => {
+      const idx = parseInt(e.target.dataset.setidx);
+      if (cellData[cellKey].sets[idx]) cellData[cellKey].sets[idx].name = e.target.value;
+    });
+  });
+
+  modalEl.querySelectorAll('.modal-set-desc').forEach((input) => {
+    input.addEventListener('input', (e) => {
+      const idx = parseInt(e.target.dataset.setidx);
+      if (cellData[cellKey].sets[idx]) cellData[cellKey].sets[idx].description = e.target.value;
+    });
+  });
+
+  modalEl.querySelectorAll('.modal-set-image').forEach((input) => {
+    input.addEventListener('change', async (e) => {
+      const idx = parseInt(e.target.dataset.setidx);
+      const file = e.target.files?.[0];
+      if (!file) return;
+      if (file.size > 2 * 1024 * 1024) { alert('파일 크기가 2MB를 초과해요.'); return; }
+      try {
+        const processed = await processImageFile(file);
+        const url = URL.createObjectURL(processed);
+        if (cellData[cellKey].sets[idx]?.image) {
+          imageBlobs.delete(cellData[cellKey].sets[idx].image);
+          URL.revokeObjectURL(cellData[cellKey].sets[idx].image);
+        }
+        cellData[cellKey].sets[idx].image = url;
+        imageBlobs.set(url, processed);
+        const preview = e.target.closest('.set-modal-item').querySelector('.modal-set-preview');
+        preview.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;">`;
+      } catch (err) { alert(err.message); }
+    });
+  });
+
+  modalEl.querySelectorAll('.modal-remove-set-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.setidx);
+      const set = cellData[cellKey].sets[idx];
+      if (set?.image) { imageBlobs.delete(set.image); URL.revokeObjectURL(set.image); }
+      cellData[cellKey].sets.splice(idx, 1);
+      modal.hide();
+      modalEl.addEventListener('hidden.bs.modal', () => { showSetModal(cellKey); }, { once: true });
+    });
+  });
+
+  modalEl.querySelector('.modal-add-set-btn').addEventListener('click', () => {
+    cellData[cellKey].sets.push({ image: '', name: '', description: '' });
+    modal.hide();
+    modalEl.addEventListener('hidden.bs.modal', () => { showSetModal(cellKey); }, { once: true });
+  });
+
+  modalEl.addEventListener('hidden.bs.modal', () => {
+    document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+    document.body.classList.remove('modal-open');
+    document.body.style.overflow = '';
+    document.body.style.paddingRight = '';
+    modalEl.remove();
+    updateSetButtonText(cellKey);
+  });
+}
+
+function updateSetButtonText(cellKey) {
+  const btn = document.querySelector(`.open-set-modal-btn[data-cellkey="${cellKey}"]`);
+  if (btn) {
+    const count = (cellData[cellKey]?.sets || []).length;
+    btn.innerHTML = `📦 세트설정 (${count}개)`;
+  }
 }
 
 function rebuildTable() {
@@ -319,18 +472,32 @@ function rebuildTable() {
     tableHtml += `<tr><th class="bg-light align-middle text-nowrap"><span class="small" id="y-header-${y}">항목 ${y + 1}</span></th>`;
     for (let x = 0; x < xCount; x++) {
       const cellKey = `cell_${y}_${x}`;
-      const cell = cellData[cellKey] || { name: '', description: '', images: [] };
-      tableHtml += `
-        <td>
-          <div class="cell-editor">
-            <input type="text" class="form-control form-control-sm mb-1" placeholder="이름" data-cell="${cellKey}" data-field="name" value="${cell.name || ''}">
-            <input type="text" class="form-control form-control-sm mb-1" placeholder="설명" data-cell="${cellKey}" data-field="description" value="${cell.description || ''}">
-            <input type="file" class="form-control form-control-sm" accept="image/*" multiple data-cell="${cellKey}" data-field="images">
-            <div class="image-preview-container mt-1 d-flex flex-wrap gap-1" data-cell="${cellKey}">
-              ${(cell.images || []).map((img, idx) => `<div class="position-relative" style="width:50px;height:50px;"><img src="${img}" class="rounded" style="width:100%;height:100%;object-fit:cover;"><button type="button" class="btn-close btn-close-white position-absolute top-0 end-0" style="font-size:10px;" data-cell="${cellKey}" data-img-index="${idx}"></button></div>`).join('')}
+      const cell = cellData[cellKey] || { name: '', description: '', images: [], sets: [] };
+
+      if (isRandomMode) {
+        const setCount = (cell.sets || []).length;
+        tableHtml += `
+          <td>
+            <div class="text-center">
+              <button type="button" class="btn btn-outline-primary btn-sm w-100 open-set-modal-btn" data-cellkey="${cellKey}">
+                📦 세트설정 (${setCount}개)
+              </button>
             </div>
-          </div>
-        </td>`;
+          </td>`;
+      } else {
+        // Normal mode: single name, description, image
+        tableHtml += `
+          <td>
+            <div class="cell-editor">
+              <input type="text" class="form-control form-control-sm mb-1" placeholder="이름" data-cell="${cellKey}" data-field="name" value="${cell.name || ''}">
+              <input type="text" class="form-control form-control-sm mb-1" placeholder="설명" data-cell="${cellKey}" data-field="description" value="${cell.description || ''}">
+              <input type="file" class="form-control form-control-sm" accept="image/*" data-cell="${cellKey}" data-field="images">
+              <div class="image-preview-container mt-1 d-flex flex-wrap gap-1" data-cell="${cellKey}">
+                ${(cell.images || []).map((img, idx) => `<div class="position-relative" style="width:50px;height:50px;"><img src="${img}" class="rounded" style="width:100%;height:100%;object-fit:cover;"><button type="button" class="btn-close btn-close-white position-absolute top-0 end-0" style="font-size:10px;" data-cell="${cellKey}" data-img-index="${idx}"></button></div>`).join('')}
+              </div>
+            </div>
+          </td>`;
+      }
     }
     tableHtml += '</tr>';
   }
@@ -397,6 +564,12 @@ function rebuildTable() {
     });
   });
 
+  document.querySelectorAll('.open-set-modal-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      showSetModal(btn.dataset.cellkey);
+    });
+  });
+
   const previewContainer = document.getElementById('preview-table');
   let previewHtml = '<table class="table table-sm table-bordered mb-0"><tbody>';
   for (let y = 0; y < yCount; y++) {
@@ -410,6 +583,18 @@ function rebuildTable() {
   }
   previewHtml += '</tbody></table>';
   previewContainer.innerHTML = previewHtml;
+}
+
+function ensureCellSets(cellKey) {
+  if (!cellData[cellKey]) cellData[cellKey] = { name: '', description: '', images: [], sets: [] };
+  if (!cellData[cellKey].sets) cellData[cellKey].sets = [];
+}
+
+function ensureSetAtIndex(cellKey, setIdx) {
+  ensureCellSets(cellKey);
+  if (!cellData[cellKey].sets[setIdx]) {
+    cellData[cellKey].sets[setIdx] = { image: '', name: '', description: '' };
+  }
 }
 
 async function handleCellImages(e) {
@@ -472,7 +657,7 @@ async function handleSubmit(e) {
 
   const submitBtn = document.getElementById('btn-submit-game');
   submitBtn.disabled = true;
-  submitBtn.textContent = '출시 중...';
+  submitBtn.textContent = editMode ? '수정 중...' : '출시 중...';
 
   try {
     const xLabels = [];
@@ -488,14 +673,26 @@ async function handleSubmit(e) {
     for (let y = 0; y < yCount; y++) {
       for (let x = 0; x < xCount; x++) {
         const key = `cell_${y}_${x}`;
-        const cell = cellData[key] || { name: '', description: '', images: [] };
-        cells.push({
+        const cell = cellData[key] || { name: '', description: '', images: [], sets: [] };
+        const cellObj = {
           row: y,
           col: x,
-          name: cell.name || '',
-          description: cell.description || '',
-          images: cell.images || [],
-        });
+        };
+        if (isRandomMode) {
+          cellObj.sets = (cell.sets || []).map(s => ({
+            image: s.image || '',
+            name: s.name || '',
+            description: s.description || '',
+          }));
+          cellObj.name = '';
+          cellObj.description = '';
+          cellObj.images = [];
+        } else {
+          cellObj.name = cell.name || '';
+          cellObj.description = cell.description || '';
+          cellObj.images = cell.images || [];
+        }
+        cells.push(cellObj);
       }
     }
 
@@ -518,35 +715,55 @@ async function handleSubmit(e) {
       xLabels,
       yLabels,
       cells,
-      createdBy: user.uid,
-      thumbnailUrl: '',
+      thumbnailUrl: editMode ? (cellData['_thumbnailUrl'] || '') : '',
     };
+    if (!editMode) gameData.createdBy = user.uid;
 
-    gameId = await createGame(gameData);
+    if (editMode) {
+      await updateGame(gameId, gameData);
+    } else {
+      gameId = await createGame(gameData);
+    }
 
     if (thumbnailBlob) {
       const thumbUrl = await uploadGameThumbnail(gameId, thumbnailBlob);
       await updateGame(gameId, { thumbnailUrl: thumbUrl });
     }
 
-    const hasImages = [...imageBlobs.keys()].length > 0;
-    if (hasImages) {
+    // Upload new cell images (blobs) and preserve existing URLs
+    const needsImageUpdate = [...imageBlobs.keys()].length > 0 || editMode;
+    if (needsImageUpdate) {
       for (let y = 0; y < yCount; y++) {
         for (let x = 0; x < xCount; x++) {
           const key = `cell_${y}_${x}`;
           const cell = cellData[key];
-          if (!cell?.images?.length) continue;
+          if (!cell) continue;
 
-          const uploadedUrls = [];
-          for (let i = 0; i < cell.images.length; i++) {
-            const url = cell.images[i];
-            const blob = imageBlobs.get(url);
-            if (blob) {
-              const uploadedUrl = await uploadCellImage(gameId, `row${y}_col${x}`, blob, i);
-              uploadedUrls.push(uploadedUrl);
+          if (isRandomMode) {
+            for (let si = 0; si < (cell.sets || []).length; si++) {
+              const set = cell.sets[si];
+              if (set?.image) {
+                const blob = imageBlobs.get(set.image);
+                if (blob) {
+                  const uploadedUrl = await uploadCellImage(gameId, `row${y}_col${x}`, blob, si);
+                  set.image = uploadedUrl;
+                }
+              }
             }
+          } else {
+            const uploadedUrls = [];
+            for (let i = 0; i < (cell.images || []).length; i++) {
+              const url = cell.images[i];
+              const blob = imageBlobs.get(url);
+              if (blob) {
+                const uploadedUrl = await uploadCellImage(gameId, `row${y}_col${x}`, blob, i);
+                uploadedUrls.push(uploadedUrl);
+              } else if (typeof url === 'string' && url.startsWith('http')) {
+                uploadedUrls.push(url);
+              }
+            }
+            cell.images = uploadedUrls;
           }
-          cell.images = uploadedUrls;
         }
       }
 
@@ -554,13 +771,16 @@ async function handleSubmit(e) {
       for (let y = 0; y < yCount; y++) {
         for (let x = 0; x < xCount; x++) {
           const key = `cell_${y}_${x}`;
-          const cell = cellData[key] || { name: '', description: '', images: [] };
-          updatedCells.push({
-            row: y, col: x,
-            name: cell.name || '',
-            description: cell.description || '',
-            images: cell.images || [],
-          });
+          const cell = cellData[key] || { name: '', description: '', images: [], sets: [] };
+          const cellObj = { row: y, col: x };
+          if (isRandomMode) {
+            cellObj.sets = cell.sets || [];
+          } else {
+            cellObj.name = cell.name || '';
+            cellObj.description = cell.description || '';
+            cellObj.images = cell.images || [];
+          }
+          updatedCells.push(cellObj);
         }
       }
       await updateGame(gameId, { cells: updatedCells });
@@ -568,9 +788,9 @@ async function handleSubmit(e) {
 
     navigateTo(`/game/${gameId}`);
   } catch (err) {
-    console.error('Failed to create game:', err);
-    alert('게임 올리기에 실패했어요. 다시 시도해 주세요.');
+    console.error('Failed to save game:', err);
+    alert(editMode ? '게임 수정에 실패했어요.' : '게임 올리기에 실패했어요. 다시 시도해 주세요.');
     submitBtn.disabled = false;
-      submitBtn.textContent = '게임 올리기';
+    submitBtn.textContent = editMode ? '수정 완료' : '게임 올리기';
   }
 }
