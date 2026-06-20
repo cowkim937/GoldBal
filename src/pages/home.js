@@ -123,6 +123,9 @@ export async function homePage(container) {
     return `
       <div class="col">
         <div class="card game-table-card h-100 border-0 shadow-sm" data-game-id="${game.id}" style="cursor:pointer">
+          <div class="card-img-wrapper" style="height:120px;overflow:hidden;background:#f0f0f0;">
+            <img src="${game.thumbnailUrl || '/placeholder-game.svg'}" class="w-100 h-100" style="object-fit:cover;" alt="${game.title || ''}" loading="lazy" onerror="this.src='/placeholder-game.svg'">
+          </div>
           <div class="card-body p-3">
             <div class="d-flex justify-content-between align-items-start mb-2">
               <h6 class="card-title fw-bold text-truncate mb-0" style="max-width:70%">${game.title || '제목 없음'}</h6>
