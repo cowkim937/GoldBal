@@ -26,6 +26,9 @@ export function renderHeader(container) {
             </li>
           </ul>
           <div class="d-flex align-items-center gap-2" id="auth-section">
+            <span class="badge bg-warning text-dark d-flex align-items-center gap-1" id="credit-badge" style="display:none;">
+              💰 <span id="credit-amount">0</span>
+            </span>
             <div class="dropdown" id="user-menu" style="display:none;">
               <button class="btn btn-outline-secondary dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown">
                 <span id="user-name">사용자</span>
@@ -56,6 +59,14 @@ function setupHeaderEvents() {
     const loginModal = document.getElementById('login-modal');
     if (loginModal) {
       const modal = new bootstrap.Modal(loginModal);
+      modal.show();
+    }
+  });
+
+  document.getElementById('credit-badge')?.addEventListener('click', () => {
+    const shopModal = document.getElementById('credit-shop-modal');
+    if (shopModal) {
+      const modal = new bootstrap.Modal(shopModal);
       modal.show();
     }
   });
@@ -92,13 +103,18 @@ export function updateAuthUI() {
   const userMenu = document.getElementById('user-menu');
   const loginButtons = document.getElementById('login-buttons');
   const userName = document.getElementById('user-name');
+  const creditBadge = document.getElementById('credit-badge');
+  const creditAmount = document.getElementById('credit-amount');
 
   if (user) {
     userMenu.style.display = '';
     loginButtons.style.display = 'none';
     if (userName) userName.textContent = user.nickname || '사용자';
+    if (creditBadge) creditBadge.style.display = '';
+    if (creditAmount) creditAmount.textContent = user.credits || 0;
   } else {
     userMenu.style.display = 'none';
     loginButtons.style.display = '';
+    if (creditBadge) creditBadge.style.display = 'none';
   }
 }
