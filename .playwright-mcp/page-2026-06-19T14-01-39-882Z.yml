@@ -1,0 +1,109 @@
+- generic [ref=e2]:
+  - banner [ref=e4]:
+    - navigation [ref=e5]:
+      - generic [ref=e6]:
+        - link "황벨뽑기" [ref=e7] [cursor=pointer]:
+          - /url: /
+        - generic [ref=e8]:
+          - list [ref=e9]:
+            - listitem [ref=e10]:
+              - link "홈" [ref=e11] [cursor=pointer]:
+                - /url: /
+            - listitem [ref=e12]:
+              - link "탐색" [ref=e13] [cursor=pointer]:
+                - /url: /search
+            - listitem [ref=e14]:
+              - link "만들기" [ref=e15] [cursor=pointer]:
+                - /url: /create
+          - button "테스트" [ref=e18] [cursor=pointer]:
+            - generic [ref=e19]: 테스트
+  - generic [ref=e21]:
+    - generic [ref=e22]:
+      - heading "예산으로 뽑는 밸런스 게임" [level=1] [ref=e23]
+      - paragraph [ref=e24]: 가로축 예산, 세로축 선택지. 직접 게임을 만들고 친구들과 함께 뽑아보세요!
+      - link "게임 만들기" [ref=e25] [cursor=pointer]:
+        - /url: /create
+    - generic [ref=e26]:
+      - generic [ref=e27]:
+        - heading "🔥 인기 게임" [level=2] [ref=e28]
+        - link "더보기" [ref=e29] [cursor=pointer]:
+          - /url: /search?sort=popular
+      - generic [ref=e32] [cursor=pointer]:
+        - generic [ref=e33]:
+          - img "테스트 게임" [ref=e34]
+          - generic [ref=e35]: 1만원
+        - generic [ref=e36]:
+          - heading "테스트 게임" [level=6] [ref=e37]
+          - paragraph [ref=e38]: 플레이테스트 자동 생성
+          - generic [ref=e39]:
+            - generic [ref=e40]: 게임
+            - generic [ref=e41]:
+              - generic [ref=e42]: 👁 1
+              - generic [ref=e43]: ❤ 0
+    - generic [ref=e44]:
+      - generic [ref=e45]:
+        - heading "🆕 최신 게임" [level=2] [ref=e46]
+        - link "더보기" [ref=e47] [cursor=pointer]:
+          - /url: /search?sort=latest
+      - generic [ref=e50] [cursor=pointer]:
+        - generic [ref=e51]:
+          - img "테스트 게임" [ref=e52]
+          - generic [ref=e53]: 1만원
+        - generic [ref=e54]:
+          - heading "테스트 게임" [level=6] [ref=e55]
+          - paragraph [ref=e56]: 플레이테스트 자동 생성
+          - generic [ref=e57]:
+            - generic [ref=e58]: 게임
+            - generic [ref=e59]:
+              - generic [ref=e60]: 👁 1
+              - generic [ref=e61]: ❤ 0
+  - contentinfo [ref=e63]:
+    - generic [ref=e64]:
+      - generic [ref=e65]:
+        - generic [ref=e66]:
+          - heading "황벨뽑기" [level=5] [ref=e67]
+          - paragraph [ref=e68]: 예산으로 뽑는 나만의 밸런스 게임! 직접 만들고 친구들과 공유하세요.
+        - generic [ref=e69]:
+          - heading "바로가기" [level=6] [ref=e70]
+          - list [ref=e71]:
+            - listitem [ref=e72]:
+              - link "홈" [ref=e73] [cursor=pointer]:
+                - /url: /
+            - listitem [ref=e74]:
+              - link "탐색" [ref=e75] [cursor=pointer]:
+                - /url: /search
+            - listitem [ref=e76]:
+              - link "게임 만들기" [ref=e77] [cursor=pointer]:
+                - /url: /create
+        - generic [ref=e78]:
+          - heading "정책" [level=6] [ref=e79]
+          - list [ref=e80]:
+            - listitem [ref=e81]:
+              - link "개인정보처리방침" [ref=e82] [cursor=pointer]:
+                - /url: /privacy
+            - listitem [ref=e83]:
+              - link "이용약관" [ref=e84] [cursor=pointer]:
+                - /url: /terms
+            - listitem [ref=e85]:
+              - link "콘텐츠 정책" [ref=e86] [cursor=pointer]:
+                - /url: /content-policy
+            - listitem [ref=e87]:
+              - link "저작권 정책" [ref=e88] [cursor=pointer]:
+                - /url: /copyright
+        - generic [ref=e89]:
+          - heading "고객지원" [level=6] [ref=e90]
+          - list [ref=e91]:
+            - listitem [ref=e92]:
+              - link "소개" [ref=e93] [cursor=pointer]:
+                - /url: /about
+            - listitem [ref=e94]:
+              - link "문의하기" [ref=e95] [cursor=pointer]:
+                - /url: /contact
+            - listitem [ref=e96]:
+              - link "신고하기" [ref=e97] [cursor=pointer]:
+                - /url: /report
+      - separator [ref=e98]
+      - generic [ref=e100]:
+        - paragraph [ref=e101]: 모든 게임은 사용자가 직접 만든 콘텐츠예요.
+        - paragraph [ref=e102]: 업로드된 이미지와 콘텐츠의 권리는 원 저작자 또는 업로드한 사용자에게 있어요.
+        - paragraph [ref=e103]: © 2026 황벨뽑기. All rights reserved.

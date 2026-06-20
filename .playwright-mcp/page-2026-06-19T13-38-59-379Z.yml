@@ -1,0 +1,90 @@
+- generic [ref=e2]:
+  - banner [ref=e4]:
+    - navigation [ref=e5]:
+      - generic [ref=e6]:
+        - link "BizTen" [ref=e7] [cursor=pointer]:
+          - /url: /
+        - generic [ref=e8]:
+          - list [ref=e9]:
+            - listitem [ref=e10]:
+              - link "홈" [ref=e11] [cursor=pointer]:
+                - /url: /
+            - listitem [ref=e12]:
+              - link "탐색" [active] [ref=e13] [cursor=pointer]:
+                - /url: /search
+            - listitem [ref=e14]:
+              - link "만들기" [ref=e15] [cursor=pointer]:
+                - /url: /create
+          - button "로그인" [ref=e18] [cursor=pointer]
+  - generic [ref=e83]:
+    - heading "🔍 게임 탐색" [level=2] [ref=e84]
+    - generic [ref=e87]:
+      - textbox "게임 검색..." [ref=e89]
+      - combobox [ref=e91]:
+        - option "전체 카테고리" [selected]
+        - option "게임"
+        - option "포켓몬"
+        - option "애니"
+        - option "자동차"
+        - option "음식"
+        - option "연예인"
+        - option "스포츠"
+        - option "IT"
+        - option "역사"
+        - option "기타"
+      - combobox [ref=e93]:
+        - option "최신순" [selected]
+        - option "인기순"
+        - option "조회순"
+        - option "좋아요순"
+    - generic [ref=e96]: 검색 중 오류가 발생했습니다.
+  - contentinfo [ref=e42]:
+    - generic [ref=e43]:
+      - generic [ref=e44]:
+        - generic [ref=e45]:
+          - heading "BizTen" [level=5] [ref=e46]
+          - paragraph [ref=e47]: 나만의 밸런스 게임을 만들고 친구들과 공유하는 플랫폼입니다.
+        - generic [ref=e48]:
+          - heading "바로가기" [level=6] [ref=e49]
+          - list [ref=e50]:
+            - listitem [ref=e51]:
+              - link "홈" [ref=e52] [cursor=pointer]:
+                - /url: /
+            - listitem [ref=e53]:
+              - link "탐색" [ref=e54] [cursor=pointer]:
+                - /url: /search
+            - listitem [ref=e55]:
+              - link "게임 만들기" [ref=e56] [cursor=pointer]:
+                - /url: /create
+        - generic [ref=e57]:
+          - heading "정책" [level=6] [ref=e58]
+          - list [ref=e59]:
+            - listitem [ref=e60]:
+              - link "개인정보처리방침" [ref=e61] [cursor=pointer]:
+                - /url: /privacy
+            - listitem [ref=e62]:
+              - link "이용약관" [ref=e63] [cursor=pointer]:
+                - /url: /terms
+            - listitem [ref=e64]:
+              - link "콘텐츠 정책" [ref=e65] [cursor=pointer]:
+                - /url: /content-policy
+            - listitem [ref=e66]:
+              - link "저작권 정책" [ref=e67] [cursor=pointer]:
+                - /url: /copyright
+        - generic [ref=e68]:
+          - heading "고객지원" [level=6] [ref=e69]
+          - list [ref=e70]:
+            - listitem [ref=e71]:
+              - link "소개" [ref=e72] [cursor=pointer]:
+                - /url: /about
+            - listitem [ref=e73]:
+              - link "문의하기" [ref=e74] [cursor=pointer]:
+                - /url: /contact
+            - listitem [ref=e75]:
+              - link "신고하기" [ref=e76] [cursor=pointer]:
+                - /url: /report
+      - separator [ref=e77]
+      - generic [ref=e79]:
+        - paragraph [ref=e80]: 모든 게임은 사용자 생성 콘텐츠(UGC)입니다.
+        - paragraph [ref=e81]: 사용자가 업로드한 이미지와 콘텐츠의 권리는 원 저작자 또는 업로드한 사용자에게 있습니다.
+        - paragraph [ref=e82]: © 2026 BizTen. All rights reserved.

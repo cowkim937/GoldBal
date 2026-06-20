@@ -1,0 +1,122 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+:root {
+  --bs-primary: #6366f1;
+  --bs-primary-rgb: 99, 102, 241;
+  --bs-primary-bg-subtle: #eef2ff;
+  --bs-font-sans-serif: 'Noto Sans KR', system-ui, -apple-system, sans-serif;
+}
+
+body {
+  font-family: var(--bs-font-sans-serif);
+  background-color: #f8fafc;
+  min-height: 100vh;
+  margin: 0;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+#main-container {
+  flex: 1;
+}
+
+.card {
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08) !important;
+}
+
+.game-card {
+  cursor: pointer;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.game-card:hover .card-img-wrapper img {
+  transform: scale(1.05);
+}
+
+.game-table-card {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  border-radius: 10px;
+}
+
+.game-table-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.12) !important;
+}
+
+.card-img-wrapper img {
+  transition: transform 0.3s ease;
+}
+
+.game-cell {
+  border-radius: 10px;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.game-cell:hover {
+  border-color: var(--bs-primary);
+  background-color: var(--bs-primary-bg-subtle);
+}
+
+.game-cell.border-primary {
+  box-shadow: 0 0 0 2px rgba(var(--bs-primary-rgb), 0.2);
+}
+
+.btn-primary {
+  border: none;
+}
+
+.btn-primary:hover {
+  filter: brightness(1.1);
+}
+
+.avatar-circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.navbar-brand {
+  font-size: 1.5rem;
+  letter-spacing: -0.5px;
+}
+
+.table-bordered th,
+.table-bordered td {
+  vertical-align: middle;
+}
+
+.cell-editor input[type="file"] {
+  font-size: 0.75rem;
+}
+
+.form-range::-webkit-slider-thumb {
+  background: var(--bs-primary);
+}
+
+.form-range::-moz-range-thumb {
+  background: var(--bs-primary);
+}
+
+@media (max-width: 768px) {
+  .display-5 {
+    font-size: 2rem;
+  }
+
+  .container {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}
