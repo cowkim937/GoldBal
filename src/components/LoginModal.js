@@ -63,6 +63,8 @@ export function renderLoginModal(container) {
         alert('현재 도메인이 Firebase에 등록되지 않았어요.\n\nFirebase Console → Authentication → Settings → 승인된 도메인에\n"goldbalance.cowkim937.workers.dev"를 추가해주세요.');
       } else if (err.code === 'auth/operation-not-allowed') {
         alert('Google 로그인이 활성화되지 않았어요.\n\nFirebase Console → Authentication → Sign-in method → Google 사용 설정');
+      } else if (err.code === 'auth/configuration-not-ready') {
+        alert(err.message || 'Firebase 설정이 완료되지 않았어요. .env와 Cloudflare 환경 변수를 확인해주세요.');
       } else {
         alert('로그인 실패: ' + (err.message || err.code || '알 수 없는 오류'));
       }
