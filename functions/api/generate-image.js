@@ -95,7 +95,7 @@ async function handleGenerateImage(request, env) {
       method: 'POST',
       headers,
       body: JSON.stringify({
-        model: 'gpt-image-1',
+        model: 'gpt-image-1-mini',
         prompt: prompt.trim(),
         n: 1,
         size: imageSize,
