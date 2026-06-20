@@ -32,6 +32,7 @@ function handleHealth(env) {
   const status = {
     worker: 'running',
     openai: !!env.OPENAI_API_KEY,
+    openaiProject: !!env.OPENAI_PROJECT_ID,
     firebase: !!(env.FIREBASE_API_KEY && env.FIREBASE_AUTH_DOMAIN && env.FIREBASE_PROJECT_ID && env.FIREBASE_APP_ID),
   };
   return json(status, 200);
@@ -76,12 +77,17 @@ async function handleGenerateImage(request, env) {
     const imageSize = VALID_SIZES.includes(size) ? size : '1024x1024';
     const imageQuality = VALID_QUALITIES.includes(quality) ? quality : 'auto';
 
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+    };
+    if (env.OPENAI_PROJECT_ID) {
+      headers['OpenAI-Project'] = env.OPENAI_PROJECT_ID;
+    }
+
     const openaiRes = await fetch('https://api.openai.com/v1/images/generations', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
+      headers,
       body: JSON.stringify({
         model: 'gpt-image-1',
         prompt: prompt.trim(),
