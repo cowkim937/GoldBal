@@ -19,6 +19,7 @@ const existingImages = new Map(); // cellKey → [urls to keep]
 export async function createPage(container, params = {}) {
   editMode = !!params?.id;
   gameId = params?.id || null;
+
   if (editMode && gameId) {
     try {
       const existing = await getGame(gameId);
@@ -28,11 +29,14 @@ export async function createPage(container, params = {}) {
         setupCreatePage();
         return () => {};
       }
-    } catch (e) { /* not found, new game */ }
-    editMode = false;
-    gameId = null;
+    } catch (e) {
+      console.error('게임 불러오기 실패:', e.message);
+    }
+    container.innerHTML = `<div class="container py-5 text-center"><div class="card shadow-sm p-5"><h3 class="mb-3">게임을 불러올 수 없어요</h3><p class="text-muted mb-4">존재하지 않거나 삭제된 게임이에요.</p><a href="/" class="btn btn-primary" data-link>홈으로</a></div></div>`;
+    return () => {};
   }
 
+  resetState();
   const user = getCurrentUser();
   if (!user) {
     container.innerHTML = `
@@ -56,6 +60,18 @@ export async function createPage(container, params = {}) {
   setupCreatePage();
   setMetaTags({ title: '게임 만들기', description: '나만의 밸런스 게임을 만들어보세요!' });
   return () => {};
+}
+
+function resetState() {
+  xCount = 4;
+  yCount = 3;
+  isRandomMode = false;
+  cellData = {};
+  gameId = null;
+  thumbnailBlob = null;
+  editMode = false;
+  imageBlobs.clear();
+  existingImages.clear();
 }
 
 function prefillFromGame(game) {

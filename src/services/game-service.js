@@ -16,7 +16,7 @@ import {
   serverTimestamp,
   runTransaction,
 } from '../firebase/firestore.js';
-import { getStorageInstance, ref, uploadBytes, getDownloadURL } from '../firebase/storage.js';
+import { getStorageInstance, ref, uploadBytes, getDownloadURL, deleteObject } from '../firebase/storage.js';
 import { COLLECTIONS, PAGE_SIZE } from '../utils/constants.js';
 
 export async function createGame(gameData) {
@@ -154,12 +154,18 @@ export async function deleteGame(gameId) {
 
 export async function uploadGameThumbnail(gameId, file) {
   const storageRef = ref(getStorageInstance(), `game-thumbnails/${gameId}`);
-  await uploadBytes(storageRef, file);
-  return getDownloadURL(storageRef);
+  const metadata = { contentType: file.type || 'image/png' };
+  await uploadBytes(storageRef, file, metadata);
+  const url = await getDownloadURL(storageRef);
+  console.log('썸네일 업로드 완료:', url);
+  return url;
 }
 
 export async function uploadCellImage(gameId, cellId, file, index) {
   const storageRef = ref(getStorageInstance(), `games/${gameId}/${cellId}/image${index}.webp`);
-  await uploadBytes(storageRef, file);
-  return getDownloadURL(storageRef);
+  const metadata = { contentType: file.type || 'image/webp' };
+  await uploadBytes(storageRef, file, metadata);
+  const url = await getDownloadURL(storageRef);
+  console.log('셀 이미지 업로드 완료:', url);
+  return url;
 }

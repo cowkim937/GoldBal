@@ -5,16 +5,31 @@ import { AI_IMAGE } from '../utils/constants.js';
 const API_BASE = '/api/generate-image';
 
 async function callGenerateImage(prompt, size, quality) {
-  const res = await fetch(API_BASE, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt, size, quality }),
-  });
-
-  const data = await res.json();
-  if (!res.ok) {
-    throw new Error(data.error || '이미지 생성에 실패했어요.');
+  let res;
+  try {
+    res = await fetch(API_BASE, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, size, quality }),
+    });
+  } catch (err) {
+    console.error('AI 이미지 API 호출 실패 (네트워크):', err.message);
+    throw new Error('서버에 연결할 수 없어요. 네트워크 상태를 확인해주세요.');
   }
+
+  let data;
+  try {
+    data = await res.json();
+  } catch (err) {
+    console.error('AI 이미지 API 응답 파싱 실패:', err.message);
+    throw new Error('서버 응답을 처리할 수 없어요. 잠시 후 다시 시도해주세요.');
+  }
+
+  if (!res.ok) {
+    console.error('AI 이미지 API 오류:', res.status, data);
+    throw new Error(data.error || `이미지 생성에 실패했어요. (${res.status})`);
+  }
+
   return data;
 }
 
