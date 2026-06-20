@@ -8,6 +8,7 @@ import { registerRoute, navigateTo } from './utils/router.js';
 import { renderHeader } from './components/Header.js';
 import { renderFooter } from './components/Footer.js';
 import { renderLoginModal } from './components/LoginModal.js';
+import { renderCreditShopModal } from './components/CreditShopModal.js';
 import { initAuth, onUserChange } from './services/auth-service.js';
 import { updateAuthUI } from './components/Header.js';
 import { homePage } from './pages/home.js';
@@ -45,6 +46,7 @@ renderShell();
 renderHeader(document.getElementById('header-container'));
 renderFooter(document.getElementById('footer-container'));
 renderLoginModal(document.getElementById('modal-container'));
+renderCreditShopModal(document.getElementById('modal-container'));
 
 registerRoute(ROUTES.HOME, homePage);
 registerRoute(ROUTES.CREATE, createPage);
