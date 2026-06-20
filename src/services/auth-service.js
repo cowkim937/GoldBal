@@ -1,4 +1,4 @@
-import { signInWithGoogle, signInWithGithub, signInAsAnonymous, signOutUser, onAuthChange, signInWithEmail } from '../firebase/auth.js';
+import { signInWithGoogle, signOutUser, onAuthChange } from '../firebase/auth.js';
 import { getDb, doc, getDoc, setDoc, serverTimestamp } from '../firebase/firestore.js';
 import { COLLECTIONS, STORAGE_KEYS } from '../utils/constants.js';
 
@@ -51,35 +51,6 @@ export async function handleGoogleLogin() {
   return user;
 }
 
-export async function handleGithubLogin() {
-  const result = await signInWithGithub();
-  const user = result.user;
-  await createUserProfile(
-    user.uid,
-    user.displayName || user.email?.split('@')[0] || '사용자',
-    user.photoURL || ''
-  );
-  return user;
-}
-
-export async function handleDevLogin(email, password) {
-  const result = await signInWithEmail(email, password);
-  const user = result.user;
-  await createUserProfile(
-    user.uid,
-    user.displayName || user.email || '사용자',
-    user.photoURL || ''
-  );
-  return user;
-}
-
-export async function handleAnonymousLogin() {
-  const result = await signInAsAnonymous();
-  const user = result.user;
-  await createUserProfile(user.uid, '익명 사용자', '');
-  return user;
-}
-
 export async function handleLogout() {
   await signOutUser();
   localStorage.removeItem(STORAGE_KEYS.USER);
@@ -90,7 +61,6 @@ export async function handleLogout() {
 export function initAuth() {
   onAuthChange(async (firebaseUser) => {
     if (firebaseUser) {
-      // Set placeholder immediately so getCurrentUser() returns non-null during page load
       currentUser = {
         uid: firebaseUser.uid,
         nickname: firebaseUser.displayName || '사용자',
