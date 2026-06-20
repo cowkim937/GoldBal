@@ -12,6 +12,18 @@ dist
 dist-ssr
 *.local
 
+# Environment
+.env
+.env.*
+
+# Playwright
+.playwright-mcp/
+*.png
+
+# Temp
+tmp/
+/tmp/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

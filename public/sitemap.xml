@@ -1,43 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://hwangbel.pages.dev/</loc>
+    <loc>https://hwangbal.pages.dev/</loc>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://hwangbel.pages.dev/create</loc>
+    <loc>https://hwangbal.pages.dev/create</loc>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://hwangbel.pages.dev/search</loc>
+    <loc>https://hwangbal.pages.dev/search</loc>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://hwangbel.pages.dev/privacy</loc>
+    <loc>https://hwangbal.pages.dev/privacy</loc>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://hwangbel.pages.dev/terms</loc>
+    <loc>https://hwangbal.pages.dev/terms</loc>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://hwangbel.pages.dev/contact</loc>
+    <loc>https://hwangbal.pages.dev/contact</loc>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://hwangbel.pages.dev/about</loc>
+    <loc>https://hwangbal.pages.dev/about</loc>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://hwangbel.pages.dev/report</loc>
+    <loc>https://hwangbal.pages.dev/report</loc>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://hwangbel.pages.dev/content-policy</loc>
+    <loc>https://hwangbal.pages.dev/content-policy</loc>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://hwangbel.pages.dev/copyright</loc>
+    <loc>https://hwangbal.pages.dev/copyright</loc>
     <priority>0.4</priority>
   </url>
 </urlset>

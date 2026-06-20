@@ -5,7 +5,7 @@ const pages = {
     title: '개인정보처리방침',
     content: `
       <h3>1. 수집하는 개인정보</h3>
-      <p>황벨뽑기는 서비스 제공을 위해 아래 정보를 수집합니다.</p>
+      <p>황밸게임는 서비스 제공을 위해 아래 정보를 수집합니다.</p>
       <ul>
         <li>필수: 이메일 주소, 닉네임, 프로필 이미지</li>
         <li>자동 수집: 서비스 이용 기록, 접속 로그, 쿠키</li>
@@ -18,20 +18,20 @@ const pages = {
       <p>회원 탈퇴 시 즉시 파기합니다. 단, 관련 법령에 따라 일정 기간 보관이 필요한 경우에는 해당 기간 동안 보관합니다.</p>
 
       <h3>4. 제3자 제공</h3>
-      <p>황벨뽑기는 사용자의 동의 없이 개인정보를 제3자에게 제공하지 않습니다.</p>
+      <p>황밸게임는 사용자의 동의 없이 개인정보를 제3자에게 제공하지 않습니다.</p>
 
       <h3>5. 사용자 권리</h3>
       <p>언제든지 자신의 개인정보를 조회, 수정, 삭제할 수 있으며 회원 탈퇴를 요청할 수 있습니다.</p>
 
       <h3>6. 문의</h3>
-      <p>개인정보 관련 문의는 contact@hwangbel.pages.dev 로 보내주세요.</p>
+      <p>개인정보 관련 문의는 contact@hwangbal.pages.dev 로 보내주세요.</p>
     `,
   },
   terms: {
     title: '이용약관',
     content: `
       <h3>제1조 (목적)</h3>
-      <p>이 약관은 황벨뽑기(이하 "서비스")가 제공하는 게임 제작 및 플레이 서비스의 이용 조건을 정합니다.</p>
+      <p>이 약관은 황밸게임(이하 "서비스")가 제공하는 게임 제작 및 플레이 서비스의 이용 조건을 정합니다.</p>
 
       <h3>제2조 (서비스 내용)</h3>
       <p>서비스는 다음 기능을 제공합니다.</p>
@@ -66,7 +66,7 @@ const pages = {
       <div class="card shadow-sm mb-3">
         <div class="card-body p-4">
           <h5>📧 이메일</h5>
-          <p class="mb-0">contact@hwangbel.pages.dev</p>
+          <p class="mb-0">contact@hwangbal.pages.dev</p>
         </div>
       </div>
       <div class="card shadow-sm mb-3">
@@ -82,11 +82,11 @@ const pages = {
     title: '서비스 소개',
     content: `
       <div class="text-center mb-4">
-        <h3 class="fw-bold">황벨뽑기</h3>
+        <h3 class="fw-bold">황밸게임</h3>
         <p class="lead text-muted">예산 안에서 최고의 조합을 뽑아보세요!</p>
       </div>
       <p>
-        황벨뽑기는 누구나 쉽게 <strong>밸런스 게임</strong>을 만들고 공유할 수 있는 서비스예요.
+        황밸게임는 누구나 쉽게 <strong>밸런스 게임</strong>을 만들고 공유할 수 있는 서비스예요.
         가로축은 예산 단계, 세로축은 선택 카테고리로 구성된 표에서 각 행마다 하나씩 골라 나만의 결과를 완성하는 방식이에요.
       </p>
       <p>
@@ -94,7 +94,7 @@ const pages = {
         재미있는 게임을 직접 만들어 친구들과 공유해보세요.
       </p>
       <p class="text-muted small mt-3">
-        '황벨뽑기'는 '황금 밸런스 뽑기'의 줄임말이에요. 예산이라는 제약 안에서 최고의 선택을 뽑는 재미를 담았습니다.
+        '황밸게임'은 '황금 밸런스 게임'의 줄임말이에요. 예산이라는 제약 안에서 최고의 선택을 뽑는 재미를 담았습니다.
       </p>
     `,
   },
@@ -109,7 +109,7 @@ const pages = {
         <li>신고 사유 (저작권 침해, 부적절한 내용, 스팸 등)</li>
         <li>구체적인 설명</li>
       </ul>
-      <p>contact@hwangbel.pages.dev 로 보내주시면 빠르게 검토할게요.</p>
+      <p>contact@hwangbal.pages.dev 로 보내주시면 빠르게 검토할게요.</p>
       <p class="text-muted small">접수 후 24시간 이내에 확인하고 조치하겠습니다.</p>
     `,
   },
@@ -134,7 +134,7 @@ const pages = {
     title: '저작권 정책',
     content: `
       <h3>사용자 제작 콘텐츠</h3>
-      <p>황벨뽑기의 모든 게임은 사용자가 직접 만든 콘텐츠(UGC)입니다.</p>
+      <p>황밸게임의 모든 게임은 사용자가 직접 만든 콘텐츠(UGC)입니다.</p>
       <p>게임에 사용된 이미지와 내용의 권리는 원 저작자 또는 업로드한 사용자에게 있어요.</p>
 
       <h3>저작권 침해 신고</h3>
@@ -145,10 +145,10 @@ const pages = {
         <li>침해 콘텐츠가 있는 페이지 주소(URL)</li>
         <li>연락처</li>
       </ul>
-      <p>contact@hwangbel.pages.dev 로 보내주세요.</p>
+      <p>contact@hwangbal.pages.dev 로 보내주세요.</p>
 
       <h3>DMCA 준수</h3>
-      <p>황벨뽑기는 DMCA(Digital Millennium Copyright Act)에 따라 적법한 저작권 침해 신고가 접수되면 해당 콘텐츠를 신속히 삭제합니다.</p>
+      <p>황밸게임는 DMCA(Digital Millennium Copyright Act)에 따라 적법한 저작권 침해 신고가 접수되면 해당 콘텐츠를 신속히 삭제합니다.</p>
     `,
   },
 };

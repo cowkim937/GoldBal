@@ -77,6 +77,6 @@ export const PAGE_SIZE = 24;
 
 /** localStorage 키 */
 export const STORAGE_KEYS = {
-  USER: 'hwangbel_user',
-  AUTH_EVENT: 'hwangbel_auth_event',
+  USER: 'hwangbal_user',
+  AUTH_EVENT: 'hwangbal_auth_event',
 };

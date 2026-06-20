@@ -26,7 +26,7 @@ const store = {
 
 // localStorage persistence
 try {
-  const saved = localStorage.getItem('hwangbel_mock_data');
+  const saved = localStorage.getItem('hwangbal_mock_data');
   if (saved) {
     const parsed = JSON.parse(saved);
     for (const [coll, items] of Object.entries(parsed)) {
@@ -45,14 +45,14 @@ function persist() {
     for (const [coll, map] of Object.entries(store)) {
       data[coll] = Object.fromEntries(map);
     }
-    localStorage.setItem('hwangbel_mock_data', JSON.stringify(data));
+    localStorage.setItem('hwangbal_mock_data', JSON.stringify(data));
   } catch (e) { /* ignore */ }
 }
 
 // ============================================================
 // Mock Auth
 // ============================================================
-const MOCK_AUTH_KEY = 'hwangbel_mock_auth';
+const MOCK_AUTH_KEY = 'hwangbal_mock_auth';
 
 let mockAuthUser = null;
 {

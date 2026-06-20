@@ -7,7 +7,7 @@ export function renderFooter(container) {
     <div class="container">
       <div class="row g-4">
         <div class="col-md-4">
-          <h5 class="fw-bold mb-3">황벨뽑기</h5>
+          <h5 class="fw-bold mb-3">황밸게임</h5>
           <p class="text-secondary small">
             예산으로 뽑는 나만의 밸런스 게임! 직접 만들고 친구들과 공유하세요.
           </p>
@@ -43,7 +43,7 @@ export function renderFooter(container) {
         <div class="col-12 text-center text-secondary small">
           <p class="mb-1">모든 게임은 사용자가 직접 만든 콘텐츠예요.</p>
           <p class="mb-1">업로드된 이미지와 콘텐츠의 권리는 원 저작자 또는 업로드한 사용자에게 있어요.</p>
-          <p class="mb-0">&copy; ${new Date().getFullYear()} 황벨뽑기. All rights reserved.</p>
+          <p class="mb-0">&copy; ${new Date().getFullYear()} 황밸게임. All rights reserved.</p>
         </div>
       </div>
     </div>

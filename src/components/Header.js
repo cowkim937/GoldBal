@@ -8,7 +8,7 @@ export function renderHeader(container) {
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
       <div class="container">
         <a class="navbar-brand fw-bold text-primary" href="/" data-link>
-          황벨뽑기
+          황밸게임
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
           <span class="navbar-toggler-icon"></span>

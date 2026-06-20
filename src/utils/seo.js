@@ -1,5 +1,5 @@
 export function setMetaTags({ title, description, image, url } = {}) {
-  const siteName = '황벨뽑기';
+  const siteName = '황밸게임';
 
   document.title = title ? `${title} - ${siteName}` : siteName;
 
