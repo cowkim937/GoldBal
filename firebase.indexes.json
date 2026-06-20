@@ -59,13 +59,6 @@
       ]
     },
     {
-      "collectionGroup": "likes",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "userId", "order": "ASCENDING" }
-      ]
-    },
-    {
       "collectionGroup": "games",
       "queryScope": "COLLECTION",
       "fields": [

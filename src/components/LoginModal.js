@@ -1,6 +1,7 @@
 import { handleGoogleLogin, handleGithubLogin, handleAnonymousLogin, handleDevLogin } from '../services/auth-service.js';
+import { firebaseReady } from '../firebase/config.js';
 
-const isDev = import.meta.env.DEV;
+const showDevLogin = import.meta.env.DEV && !firebaseReady;
 
 export function renderLoginModal(container) {
   const modalHtml = document.createElement('div');
@@ -13,7 +14,7 @@ export function renderLoginModal(container) {
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body text-center py-4">
-            ${isDev ? `
+            ${showDevLogin ? `
             <div class="alert alert-info small mb-3">
               <strong>개발 모드</strong><br>test / test1234
             </div>
