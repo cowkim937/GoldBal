@@ -1,12 +1,22 @@
-import { signInWithGoogle, signOutUser, onAuthChange } from '../firebase/auth.js';
+import { signInWithGoogle, handleRedirectResult, signOutUser, onAuthChange } from '../firebase/auth.js';
 import { getDb, doc, getDoc, setDoc, serverTimestamp } from '../firebase/firestore.js';
 import { COLLECTIONS, STORAGE_KEYS } from '../utils/constants.js';
 
 let currentUser = null;
 let authListeners = [];
+let pendingSignup = null;
 
 export function getCurrentUser() {
   return currentUser;
+}
+
+export function getPendingSignup() {
+  return pendingSignup;
+}
+
+export function clearPendingSignup() {
+  pendingSignup = null;
+  sessionStorage.removeItem('hwangbal_pending_signup');
 }
 
 export function onUserChange(callback) {
@@ -20,8 +30,16 @@ function notifyListeners(user) {
 }
 
 export async function handleGoogleLogin() {
-  const result = await signInWithGoogle();
-  return result.user;
+  try {
+    const result = await signInWithGoogle();
+    return result.user;
+  } catch (err) {
+    if (err.code === 'auth/popup-blocked' || err.code === 'auth/popup-closed-by-user' || err.message?.includes('container')) {
+      sessionStorage.setItem('hwangbal_pending_signup', '1');
+      return { redirecting: true };
+    }
+    throw err;
+  }
 }
 
 export async function completeSignup(uid, nickname, photoURL) {
@@ -32,6 +50,7 @@ export async function completeSignup(uid, nickname, photoURL) {
   }
   currentUser = { uid, nickname, profileImage: photoURL || '' };
   localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(currentUser));
+  clearPendingSignup();
   notifyListeners(currentUser);
 }
 
@@ -39,18 +58,45 @@ export async function handleLogout() {
   await signOutUser();
   localStorage.removeItem(STORAGE_KEYS.USER);
   currentUser = null;
+  pendingSignup = null;
   notifyListeners(null);
 }
 
 export function initAuth() {
+  handleRedirectResult().then((result) => {
+    if (result?.user) {
+      pendingSignup = result.user;
+      currentUser = {
+        uid: result.user.uid,
+        nickname: result.user.displayName || '사용자',
+        profileImage: result.user.photoURL || '',
+      };
+      notifyListeners(currentUser);
+    }
+  });
+
   onAuthChange(async (firebaseUser) => {
     if (firebaseUser) {
-      currentUser = { uid: firebaseUser.uid, nickname: firebaseUser.displayName || '사용자', profileImage: firebaseUser.photoURL || '' };
+      const isNewSignup = !!sessionStorage.getItem('hwangbal_pending_signup');
+      currentUser = {
+        uid: firebaseUser.uid,
+        nickname: firebaseUser.displayName || '사용자',
+        profileImage: firebaseUser.photoURL || '',
+      };
+      if (isNewSignup) {
+        pendingSignup = currentUser;
+      }
       notifyListeners(currentUser);
+
       try {
         const userRef = doc(getDb(), COLLECTIONS.USERS, firebaseUser.uid);
         const userSnap = await getDoc(userRef);
-        if (userSnap.exists()) currentUser = { uid: firebaseUser.uid, ...userSnap.data() };
+        if (userSnap.exists()) {
+          currentUser = { uid: firebaseUser.uid, ...userSnap.data() };
+          if (isNewSignup) {
+            clearPendingSignup();
+          }
+        }
       } catch (err) {}
     } else {
       currentUser = null;
