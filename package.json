@@ -7,8 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "deploy": "vite build && wrangler pages deploy dist",
-    "release": "vite build --mode production && wrangler pages deploy dist --project-name hwangbal"
+    "sync-secrets": "bash scripts/sync-secrets.sh",
+    "deploy": "vite build && wrangler deploy",
+    "release": "vite build && bash scripts/sync-secrets.sh && wrangler deploy"
   },
   "devDependencies": {
     "vite": "^8.0.12",
