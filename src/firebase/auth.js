@@ -7,15 +7,12 @@ import {
   onAuthStateChanged,
   GoogleAuthProvider,
 } from 'firebase/auth';
-import { app, firebaseReady } from './config.js';
+import { app } from './config.js';
 
 let _auth = null;
 let googleProvider = null;
 
 function ensureAuth() {
-  if (!firebaseReady || !app) {
-    throw new Error('Firebase가 초기화되지 않았습니다.');
-  }
   if (!_auth) {
     _auth = getAuth(app);
     googleProvider = new GoogleAuthProvider();
@@ -26,11 +23,9 @@ function ensureAuth() {
 
 export function signInWithGoogle() {
   const auth = ensureAuth();
-  try {
-    return signInWithPopup(auth, googleProvider);
-  } catch (err) {
+  return signInWithPopup(auth, googleProvider).catch(() => {
     return signInWithRedirect(auth, googleProvider);
-  }
+  });
 }
 
 export function handleRedirectResult() {
@@ -44,10 +39,6 @@ export function signOutUser() {
 }
 
 export function onAuthChange(callback) {
-  if (!app) {
-    callback(null);
-    return () => {};
-  }
   try {
     return onAuthStateChanged(getAuth(app), callback);
   } catch (err) {
