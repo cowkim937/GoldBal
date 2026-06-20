@@ -12,14 +12,36 @@ export default {
       });
     }
 
+    if (url.pathname === '/api/firebase-config' && request.method === 'GET') {
+      return handleFirebaseConfig(env);
+    }
+
     if (url.pathname === '/api/generate-image' && request.method === 'POST') {
       return handleGenerateImage(request, env);
     }
 
-    // All other requests go to static assets (SPA)
     return env.ASSETS.fetch(request);
   },
 };
+
+function handleFirebaseConfig(env) {
+  const config = {
+    apiKey: env.FIREBASE_API_KEY,
+    authDomain: env.FIREBASE_AUTH_DOMAIN,
+    projectId: env.FIREBASE_PROJECT_ID,
+    storageBucket: env.FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: env.FIREBASE_MESSAGING_SENDER_ID,
+    appId: env.FIREBASE_APP_ID,
+  };
+
+  const hasConfig = config.apiKey && config.authDomain && config.projectId && config.appId;
+
+  if (!hasConfig) {
+    return json({ error: 'Firebase 설정이 등록되지 않았습니다.' }, 503);
+  }
+
+  return json(config, 200);
+}
 
 async function handleGenerateImage(request, env) {
   const apiKey = env.OPENAI_API_KEY;
