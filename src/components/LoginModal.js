@@ -65,6 +65,8 @@ export function renderLoginModal(container) {
         alert('Google 로그인이 활성화되지 않았어요.\n\nFirebase Console → Authentication → Sign-in method → Google 사용 설정');
       } else if (err.code === 'auth/configuration-not-ready') {
         alert(err.message || 'Firebase 설정이 완료되지 않았어요. .env와 Cloudflare 환경 변수를 확인해주세요.');
+      } else if (err.code === 'auth/configuration-not-found') {
+        alert('Firebase 인증 설정을 찾지 못했어요.\n\n지금은 앱 기본 프로젝트 설정(j-board-61433)으로 자동 복구하도록 반영했어요.\n브라우저를 새로고침한 뒤 다시 시도해주세요.');
       } else {
         alert('로그인 실패: ' + (err.message || err.code || '알 수 없는 오류'));
       }
