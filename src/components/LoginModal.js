@@ -1,4 +1,4 @@
-import { handleGoogleLogin, completeSignup, handleLogout } from '../services/auth-service.js';
+import { handleGoogleLogin, completeSignup, handleLogout, isExistingUser } from '../services/auth-service.js';
 
 export function renderLoginModal(container) {
   const modalHtml = document.createElement('div');
@@ -56,7 +56,14 @@ export function renderLoginModal(container) {
   document.getElementById('btn-google-login')?.addEventListener('click', async () => {
     try {
       const user = await handleGoogleLogin();
-      showStep2(user);
+      const exists = await isExistingUser(user.uid);
+      if (exists) {
+        await completeSignup(user.uid, user.displayName || '사용자', user.photoURL || '');
+        pendingUser = null;
+        modal()?.hide();
+      } else {
+        showStep2(user);
+      }
     } catch (err) {
       if (err.code === 'auth/popup-closed-by-user') return;
       if (err.code === 'auth/unauthorized-domain') {

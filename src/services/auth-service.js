@@ -5,6 +5,12 @@ import { COLLECTIONS, STORAGE_KEYS, CREDITS as CREDIT_CONSTANTS } from '../utils
 let currentUser = null;
 let authListeners = [];
 
+// 페이지 로드 시 localStorage에서 즉시 복원
+try {
+  const saved = localStorage.getItem(STORAGE_KEYS.USER);
+  if (saved) currentUser = JSON.parse(saved);
+} catch (e) { /* ignore */ }
+
 export function getCurrentUser() {
   return currentUser;
 }
@@ -30,6 +36,14 @@ function notifyListeners(user) {
 export async function handleGoogleLogin() {
   const result = await signInWithGoogle();
   return result.user;
+}
+
+export async function isExistingUser(uid) {
+  try {
+    const userRef = doc(getDb(), COLLECTIONS.USERS, uid);
+    const userSnap = await getDoc(userRef);
+    return userSnap.exists();
+  } catch (e) { return false; }
 }
 
 export async function completeSignup(uid, nickname, photoURL) {
@@ -80,6 +94,7 @@ export function initAuth() {
         if (userSnap.exists()) {
           const data = userSnap.data();
           currentUser = { uid: firebaseUser.uid, ...data };
+          localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(currentUser));
         }
       } catch (err) {}
     } else {
