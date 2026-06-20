@@ -1,8 +1,6 @@
 import {
   getAuth,
   signInWithPopup,
-  signInWithRedirect,
-  getRedirectResult,
   signOut,
   onAuthStateChanged,
   GoogleAuthProvider,
@@ -12,25 +10,13 @@ import { app } from './config.js';
 let _auth = null;
 let googleProvider = null;
 
-function ensureAuth() {
+export function signInWithGoogle() {
   if (!_auth) {
     _auth = getAuth(app);
     googleProvider = new GoogleAuthProvider();
     googleProvider.setCustomParameters({ prompt: 'select_account' });
   }
-  return _auth;
-}
-
-export function signInWithGoogle() {
-  const auth = ensureAuth();
-  return signInWithPopup(auth, googleProvider).catch(() => {
-    return signInWithRedirect(auth, googleProvider);
-  });
-}
-
-export function handleRedirectResult() {
-  if (!_auth) _auth = getAuth(app);
-  return getRedirectResult(_auth);
+  return signInWithPopup(_auth, googleProvider);
 }
 
 export function signOutUser() {

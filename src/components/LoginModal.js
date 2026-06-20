@@ -56,13 +56,6 @@ export function renderLoginModal(container) {
   document.getElementById('btn-google-login')?.addEventListener('click', async () => {
     try {
       const user = await handleGoogleLogin();
-      if (user?.redirecting) {
-        document.getElementById('login-step-1').innerHTML = `
-          <p class="text-muted mb-0">Google 로그인 페이지로 이동합니다...</p>
-          <p class="text-muted small mt-2">잠시 후 자동으로 돌아옵니다.</p>
-        `;
-        return;
-      }
       showStep2(user);
     } catch (err) {
       if (err.code === 'auth/popup-closed-by-user') return;
