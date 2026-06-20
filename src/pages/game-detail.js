@@ -148,43 +148,51 @@ function renderGameTable(game) {
   const isRandom = game.randomMode;
   let html = '';
 
+  html += '<div class="row g-2 mb-3"><div class="col-auto" style="min-width:70px"></div>';
+  for (let x = 0; x < game.xCount; x++) {
+    const xLabel = game.xLabels?.[x] || `단계 ${x + 1}`;
+    html += `<div class="col text-center"><span class="badge bg-secondary bg-opacity-25 text-dark small">${xLabel}</span></div>`;
+  }
+  html += '</div>';
+
   for (let y = 0; y < game.yCount; y++) {
     const yLabel = game.yLabels?.[y] || `항목 ${y + 1}`;
-    html += `<div class="mb-4"><h6 class="fw-bold mb-2">${yLabel}</h6><div class="row g-2">`;
+    html += '<div class="row g-2 mb-3 align-items-stretch">';
+
+    html += `<div class="col-auto d-flex align-items-center" style="min-width:70px"><span class="fw-bold small text-nowrap">${yLabel}</span></div>`;
 
     for (let x = 0; x < game.xCount; x++) {
       const cell = game.cells?.find((c) => c.row === y && c.col === x);
       if (!cell) continue;
 
-      const xLabel = game.xLabels?.[x] || `단계 ${x + 1}`;
       const isSelected = selectedCells[y] === x;
       const price = game.priceRow?.[x] || 0;
       const priceText = price > 0 ? `${price.toLocaleString()}${game.budgetUnit || ''}` : '';
 
       html += `
-        <div class="col-md-3 col-6">
-          <div class="card game-cell ${isSelected ? 'border-primary bg-light' : ''}" 
+        <div class="col">
+          <div class="card game-cell h-100 ${isSelected ? 'border-primary' : ''}" 
                data-row="${y}" data-col="${x}" data-price="${price}"
-               style="cursor:pointer;${isSelected ? 'border-width:2px;' : ''}">
-            <div class="card-body p-2 text-center">
-              <div class="cell-image mb-1" style="height:70px;overflow:hidden;border-radius:8px;background:#f0f0f4;">
-                ${isRandom 
-                  ? `<div class="d-flex align-items-center justify-content-center h-100"><span class="text-muted fw-bold" style="font-size:28px">???</span></div>`
-                  : (cell.images?.[0] ? `<img src="${cell.images[0]}" class="w-100 h-100" style="object-fit:cover;" alt="">` : `<div class="d-flex align-items-center justify-content-center h-100"><span class="text-muted small">이미지 없음</span></div>`)
-                }
-              </div>
-              <div class="fw-bold small">${xLabel}</div>
-              ${isRandom
-                ? `<div class="small text-muted">???</div>`
-                : `<div class="small text-muted">${cell.name || ''}</div>`
+               style="cursor:pointer;${isSelected ? 'border-width:3px;' : ''}overflow:hidden;">
+            <div class="position-relative" style="height:150px;">
+              ${isRandom 
+                ? `<div class="d-flex align-items-center justify-content-center h-100 bg-light"><span class="text-muted fw-bold" style="font-size:32px">???</span></div>`
+                : (cell.images?.[0] 
+                    ? `<img src="${cell.images[0]}" class="w-100 h-100" style="object-fit:cover;" alt="">`
+                    : `<div class="d-flex align-items-center justify-content-center h-100 bg-light"><span class="text-muted small">이미지 없음</span></div>`)
               }
-              ${priceText ? `<div class="small text-primary fw-bold">${priceText}</div>` : ''}
+              ${!isRandom && cell.name ? `
+              <div class="position-absolute bottom-0 start-0 w-100 p-2" style="background:linear-gradient(transparent, rgba(0,0,0,0.75));">
+                <div class="fw-bold text-white small">${cell.name}</div>
+                ${cell.description ? `<div class="text-white-50" style="font-size:0.7rem;">${cell.description}</div>` : ''}
+              </div>` : ''}
             </div>
+            ${priceText ? `<div class="text-center py-1 bg-primary bg-opacity-10"><span class="small text-primary fw-bold">${priceText}</span></div>` : ''}
           </div>
         </div>`;
     }
 
-    html += '</div></div>';
+    html += '</div>';
   }
 
   return html;
