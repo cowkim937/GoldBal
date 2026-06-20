@@ -432,14 +432,16 @@ function showResultModal(game, selections) {
             <div class="row g-3 mb-4">
               ${selections.map((s) => `
                 <div class="col-md-6">
-                  <div class="card h-100 border-primary">
-                    <div class="card-body text-center p-3">
-                      ${s.image ? `<div class="mb-2" style="height:100px;overflow:hidden;border-radius:8px;background:#f5f5f5;"><img src="${s.image}" style="width:100%;height:100%;object-fit:cover;" alt="${s.name}"></div>` : ''}
-                      <div class="badge bg-primary mb-1">${s.yLabel}</div>
-                      <div class="fw-bold">${s.name || s.xLabel}</div>
-                      <div class="small text-muted">${s.description || ''}</div>
-                      ${s.price ? `<div class="small text-primary fw-bold mt-1">${s.price.toLocaleString()}${game.budgetUnit || ''}</div>` : ''}
+                  <div class="card h-100 border-0 shadow-sm" style="overflow:hidden;">
+                    <div class="position-relative" style="height:180px;overflow:hidden;">
+                      ${s.image ? `<img src="${s.image}" style="width:100%;height:100%;object-fit:cover;" alt="${s.name}">` : `<div class="d-flex align-items-center justify-content-center h-100 bg-light"><span class="text-muted">이미지 없음</span></div>`}
+                      <div class="position-absolute bottom-0 start-0 w-100 p-2" style="background:linear-gradient(transparent, rgba(0,0,0,0.75));">
+                        <div class="badge bg-primary bg-opacity-75 mb-1">${s.yLabel}</div>
+                        <div class="fw-bold text-white">${s.name || s.xLabel}</div>
+                        ${s.description ? `<div class="text-white-50" style="font-size:0.75rem;">${s.description}</div>` : ''}
+                      </div>
                     </div>
+                    ${s.price ? `<div class="text-center py-1 bg-primary bg-opacity-10"><span class="small text-primary fw-bold">${s.price.toLocaleString()}${game.budgetUnit || ''}</span></div>` : ''}
                   </div>
                 </div>
               `).join('')}
