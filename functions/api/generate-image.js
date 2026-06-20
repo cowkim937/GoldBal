@@ -33,6 +33,7 @@ function handleHealth(env) {
     worker: 'running',
     openai: !!env.OPENAI_API_KEY,
     openaiProject: !!env.OPENAI_PROJECT_ID,
+    openaiGateway: !!env.OPENAI_GATEWAY,
     firebase: !!(env.FIREBASE_API_KEY && env.FIREBASE_AUTH_DOMAIN && env.FIREBASE_PROJECT_ID && env.FIREBASE_APP_ID),
   };
   return json(status, 200);
@@ -63,6 +64,11 @@ async function handleGenerateImage(request, env) {
     return json({ error: '서버 설정 오류: API 키가 등록되지 않았습니다.' }, 500);
   }
 
+  const gateway = env.OPENAI_GATEWAY;
+  const apiBase = gateway
+    ? `https://gateway.ai.cloudflare.com/v1/${gateway}/openai`
+    : 'https://api.openai.com';
+
   try {
     const body = await request.json();
     const { prompt, size, quality } = body;
@@ -85,7 +91,7 @@ async function handleGenerateImage(request, env) {
       headers['OpenAI-Project'] = env.OPENAI_PROJECT_ID;
     }
 
-    const openaiRes = await fetch('https://api.openai.com/v1/images/generations', {
+    const openaiRes = await fetch(`${apiBase}/v1/images/generations`, {
       method: 'POST',
       headers,
       body: JSON.stringify({
