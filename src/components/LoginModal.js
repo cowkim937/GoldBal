@@ -1,4 +1,4 @@
-import { handleGoogleLogin } from '../services/auth-service.js';
+import { handleGoogleLogin, completeSignup, handleLogout } from '../services/auth-service.js';
 
 export function renderLoginModal(container) {
   const modalHtml = document.createElement('div');
@@ -10,7 +10,7 @@ export function renderLoginModal(container) {
             <h5 class="modal-title fw-bold">로그인 / 회원가입</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
-          <div class="modal-body text-center py-4">
+          <div class="modal-body text-center py-4" id="login-step-1">
             <p class="text-muted mb-4">Google 계정으로 간편하게 시작하세요!</p>
             <div class="d-grid">
               <button class="btn btn-outline-dark d-flex align-items-center justify-content-center gap-2 py-3" id="btn-google-login">
@@ -18,9 +18,15 @@ export function renderLoginModal(container) {
                 Google로 시작하기
               </button>
             </div>
-            <p class="text-muted small mt-4 mb-0">
-              계정이 없으면 자동으로 회원가입됩니다.
-            </p>
+          </div>
+          <div class="modal-body text-center py-4" id="login-step-2" style="display:none;">
+            <div class="mb-3">
+              <img id="signup-avatar" class="rounded-circle border" style="width:64px;height:64px;object-fit:cover;" src="" alt="">
+            </div>
+            <h6 class="fw-bold mb-1">Google 인증 완료!</h6>
+            <p class="text-muted small mb-3" id="signup-email"></p>
+            <input type="text" class="form-control form-control-sm text-center mb-3" id="signup-nickname" placeholder="닉네임을 입력하세요" maxlength="12">
+            <button class="btn btn-primary w-100 py-2" id="btn-signup-complete">회원가입 완료</button>
           </div>
         </div>
       </div>
@@ -29,15 +35,54 @@ export function renderLoginModal(container) {
 
   container.appendChild(modalHtml.firstElementChild);
 
+  let pendingUser = null;
+  const modal = () => bootstrap.Modal.getInstance(document.getElementById('login-modal'));
+
+  function showStep2(user) {
+    pendingUser = user;
+    document.getElementById('login-step-1').style.display = 'none';
+    document.getElementById('login-step-2').style.display = '';
+    document.getElementById('signup-avatar').src = user.photoURL || '';
+    document.getElementById('signup-email').textContent = user.email || '';
+    document.getElementById('signup-nickname').value = user.displayName || '';
+  }
+
+  function resetToStep1() {
+    pendingUser = null;
+    document.getElementById('login-step-1').style.display = '';
+    document.getElementById('login-step-2').style.display = 'none';
+  }
+
   document.getElementById('btn-google-login')?.addEventListener('click', async () => {
     try {
-      await handleGoogleLogin();
-      const modal = bootstrap.Modal.getInstance(document.getElementById('login-modal'));
-      modal?.hide();
+      const user = await handleGoogleLogin();
+      showStep2(user);
     } catch (err) {
       if (err.code !== 'auth/popup-closed-by-user') {
         alert('로그인에 실패했어요. 다시 시도해주세요.');
       }
     }
+  });
+
+  document.getElementById('btn-signup-complete')?.addEventListener('click', async () => {
+    if (!pendingUser) return;
+    const nickname = document.getElementById('signup-nickname').value.trim();
+    if (!nickname) {
+      alert('닉네임을 입력해주세요.');
+      return;
+    }
+    try {
+      await completeSignup(pendingUser.uid, nickname, pendingUser.photoURL || '');
+      modal()?.hide();
+    } catch (err) {
+      alert('회원가입에 실패했어요. 다시 시도해주세요.');
+    }
+  });
+
+  document.getElementById('login-modal')?.addEventListener('hidden.bs.modal', () => {
+    if (pendingUser) {
+      handleLogout();
+    }
+    resetToStep1();
   });
 }
