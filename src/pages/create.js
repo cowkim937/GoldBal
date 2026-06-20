@@ -14,7 +14,13 @@ let gameId = null;
 let thumbnailBlob = null;
 let editMode = false;
 const imageBlobs = new Map();
-const existingImages = new Map(); // cellKey → [urls to keep]
+const existingImages = new Map();
+let batchChecked = new Set();
+let batchThumbChecked = false;
+let batchRunning = false;
+let batchDiscount = 0.1;
+
+fetch('/config.json').then(r => r.json()).then(c => { batchDiscount = c.batchDiscount || 0.1; }).catch(() => {});
 
 export async function createPage(container, params = {}) {
   editMode = !!params?.id;
@@ -72,6 +78,9 @@ function resetState() {
   editMode = false;
   imageBlobs.clear();
   existingImages.clear();
+  batchChecked.clear();
+  batchThumbChecked = false;
+  batchRunning = false;
 }
 
 function prefillFromGame(game) {
@@ -105,6 +114,8 @@ function prefillFromGame(game) {
         name: '',
         description: '',
         images: [],
+        randomTitle: cell.randomTitle || '',
+        bgColor: cell.bgColor || '#f0f0f4',
         sets: cell.sets.map((s, i) => ({
           image: s.image || '',
           name: s.name || '',
@@ -221,6 +232,25 @@ function renderForm(container, isEdit) {
                 <div class="mb-3">
                   <div class="row g-2 mb-3" id="x-labels"></div>
                   <div class="row g-2 mb-3" id="y-labels"></div>
+                </div>
+                <div class="table-responsive" id="table-builder"></div>
+                <div class="card shadow-sm mt-3" id="batch-bar" style="display:none;">
+                  <div class="card-body p-2">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                      <div>
+                        <span class="fw-bold small">📦 일괄 생성</span>
+                        <span class="small text-muted ms-2" id="batch-count">0개</span>
+                        <span class="small text-success ms-2" id="batch-credit"></span>
+                      </div>
+                      <div class="d-flex gap-2 align-items-center">
+                        <div class="form-check form-check-inline mb-0">
+                          <input class="form-check-input" type="checkbox" id="batch-thumb">
+                          <label class="form-check-label small" for="batch-thumb">썸네일</label>
+                        </div>
+                        <button class="btn btn-success btn-sm" id="btn-batch-generate">일괄 생성</button>
+                        <span class="small text-muted" id="batch-progress" style="display:none;"></span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -365,6 +395,16 @@ function showSetModal(cellKey) {
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body py-3">
+            <div class="row g-2 mb-3">
+              <div class="col-md-8">
+                <label class="form-label small fw-medium">랜덤 타이틀 (??? 대신 표시)</label>
+                <input type="text" class="form-control form-control-sm modal-random-title" placeholder="예: 깜짝 아이템" maxlength="20" value="${cellData[cellKey]?.randomTitle || ''}">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label small fw-medium">배경색</label>
+                <input type="color" class="form-control form-control-sm modal-random-color" value="${cellData[cellKey]?.bgColor || '#f0f0f4'}">
+              </div>
+            </div>
             <div class="set-modal-list">`;
 
   sets.forEach((set, idx) => {
@@ -414,6 +454,15 @@ function showSetModal(cellKey) {
   const modalEl = document.getElementById(modalId);
   const modal = new bootstrap.Modal(modalEl);
   modal.show();
+
+  modalEl.querySelector('.modal-random-title')?.addEventListener('input', (e) => {
+    ensureCellSets(cellKey);
+    cellData[cellKey].randomTitle = e.target.value;
+  });
+  modalEl.querySelector('.modal-random-color')?.addEventListener('input', (e) => {
+    ensureCellSets(cellKey);
+    cellData[cellKey].bgColor = e.target.value;
+  });
 
   modalEl.querySelectorAll('.modal-set-name').forEach((input) => {
     input.addEventListener('input', (e) => {
@@ -576,24 +625,34 @@ function rebuildTable() {
 
       if (isRandomMode) {
         const setCount = (cell.sets || []).length;
+        const checked = batchChecked.has(cellKey);
         tableHtml += `
           <td>
             <div class="text-center">
+              <div class="form-check form-check-inline mb-1">
+                <input class="form-check-input batch-check" type="checkbox" data-cellkey="${cellKey}" ${checked ? 'checked' : ''}>
+              </div>
               <button type="button" class="btn btn-outline-primary btn-sm w-100 open-set-modal-btn" data-cellkey="${cellKey}">
                 📦 세트설정 (${setCount}개)
               </button>
             </div>
           </td>`;
       } else {
-        // Normal mode: single name, description, image
+        const checked = batchChecked.has(cellKey);
         tableHtml += `
           <td>
-            <div class="cell-editor">
-              <input type="text" class="form-control form-control-sm mb-1" placeholder="이름" data-cell="${cellKey}" data-field="name" value="${cell.name || ''}">
-              <input type="text" class="form-control form-control-sm mb-1" placeholder="설명" data-cell="${cellKey}" data-field="description" value="${cell.description || ''}">
-              <input type="file" class="form-control form-control-sm" accept="image/*" data-cell="${cellKey}" data-field="images">
-              <div class="image-preview-container mt-1 d-flex flex-wrap gap-1" data-cell="${cellKey}">
-                ${(cell.images || []).map((img, idx) => `<div class="position-relative" style="width:50px;height:50px;"><img src="${img}" class="rounded" style="width:100%;height:100%;object-fit:cover;"><button type="button" class="btn-close btn-close-white position-absolute top-0 end-0" style="font-size:10px;" data-cell="${cellKey}" data-img-index="${idx}"></button></div>`).join('')}
+            <div class="d-flex gap-1 align-items-start">
+              <input class="form-check-input batch-check mt-1 flex-shrink-0" type="checkbox" data-cellkey="${cellKey}" ${checked ? 'checked' : ''}>
+              <div class="flex-grow-1">
+                <input type="text" class="form-control form-control-sm mb-1 cell-name" placeholder="이름" data-cell="${cellKey}" value="${cell.name || ''}">
+                <input type="text" class="form-control form-control-sm mb-1 cell-desc" placeholder="설명" data-cell="${cellKey}" value="${cell.description || ''}">
+                <div class="d-flex gap-1">
+                  <input type="file" class="form-control form-control-sm" accept="image/*" data-cell="${cellKey}" data-field="images">
+                  <button type="button" class="btn btn-outline-success btn-sm flex-shrink-0 ai-cell-btn" data-cellkey="${cellKey}">🤖</button>
+                </div>
+                <div class="image-preview-container mt-1 d-flex flex-wrap gap-1" data-cell="${cellKey}">
+                  ${(cell.images || []).map((img, idx) => `<div class="position-relative" style="width:50px;height:50px;"><img src="${img}" class="rounded" style="width:100%;height:100%;object-fit:cover;"><button type="button" class="btn-close btn-close-white position-absolute top-0 end-0" style="font-size:10px;" data-cell="${cellKey}" data-img-index="${idx}"></button></div>`).join('')}
+                </div>
               </div>
             </div>
           </td>`;
@@ -630,18 +689,18 @@ function rebuildTable() {
     });
   });
 
-  document.querySelectorAll('[data-cell][data-field="name"]').forEach((input) => {
+  document.querySelectorAll('.cell-name').forEach((input) => {
     input.addEventListener('input', (e) => {
       const key = e.target.dataset.cell;
-      if (!cellData[key]) cellData[key] = { name: '', description: '', images: [] };
+      if (!cellData[key]) cellData[key] = { name: '', description: '', images: [], sets: [] };
       cellData[key].name = e.target.value;
     });
   });
 
-  document.querySelectorAll('[data-cell][data-field="description"]').forEach((input) => {
+  document.querySelectorAll('.cell-desc').forEach((input) => {
     input.addEventListener('input', (e) => {
       const key = e.target.dataset.cell;
-      if (!cellData[key]) cellData[key] = { name: '', description: '', images: [] };
+      if (!cellData[key]) cellData[key] = { name: '', description: '', images: [], sets: [] };
       cellData[key].description = e.target.value;
     });
   });
@@ -669,6 +728,50 @@ function rebuildTable() {
       showSetModal(btn.dataset.cellkey);
     });
   });
+
+  document.querySelectorAll('.batch-check').forEach((cb) => {
+    cb.addEventListener('change', () => {
+      const key = cb.dataset.cellkey;
+      if (cb.checked) batchChecked.add(key);
+      else batchChecked.delete(key);
+      updateBatchBar();
+    });
+  });
+
+  document.querySelectorAll('.ai-cell-btn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const key = btn.dataset.cellkey;
+      const cell = cellData[key];
+      if (!cell || !cell.name) {
+        highlightEmpty(key);
+        alert('이름과 설명을 입력해주세요.');
+        return;
+      }
+      btn.disabled = true;
+      btn.textContent = '⏳';
+      try {
+        const { blob } = await generateSetImage(cell.name, cell.description || '');
+        const url = URL.createObjectURL(blob);
+        if (cell.images?.[0]) { imageBlobs.delete(cell.images[0]); URL.revokeObjectURL(cell.images[0]); }
+        if (!cell.images) cell.images = [];
+        cell.images = [url];
+        imageBlobs.set(url, blob);
+        rebuildTable();
+      } catch (err) {
+        alert(err.message || '이미지 생성에 실패했어요.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🤖';
+      }
+    });
+  });
+
+  document.getElementById('btn-batch-generate')?.addEventListener('click', handleBatchGenerate);
+  document.getElementById('batch-thumb')?.addEventListener('change', () => {
+    batchThumbChecked = document.getElementById('batch-thumb').checked;
+    updateBatchBar();
+  });
+  updateBatchBar();
 
   const previewContainer = document.getElementById('preview-table');
   let previewHtml = '<table class="table table-sm table-bordered mb-0"><tbody>';
@@ -771,6 +874,82 @@ async function handleAIThumbnail() {
   }
 }
 
+function highlightEmpty(key) {
+  document.querySelectorAll(`.cell-name[data-cell="${key}"], .cell-desc[data-cell="${key}"]`).forEach(el => {
+    const val = el.value.trim();
+    if (!val) { el.style.border = '2px solid red'; el.classList.add('is-invalid'); }
+    const restore = () => { el.style.border = ''; el.classList.remove('is-invalid'); el.removeEventListener('focus', restore); };
+    el.addEventListener('focus', restore);
+  });
+}
+
+function updateBatchBar() {
+  const bar = document.getElementById('batch-bar');
+  const count = batchChecked.size + (batchThumbChecked ? 1 : 0);
+  if (count === 0) { bar.style.display = 'none'; return; }
+  bar.style.display = '';
+  document.getElementById('batch-count').textContent = `${count}개 선택`;
+  const basePrice = (batchChecked.size * AI_IMAGE.SET.CREDITS) + (batchThumbChecked ? AI_IMAGE.THUMBNAIL.CREDITS : 0);
+  const discounted = Math.ceil(basePrice * (1 - batchDiscount));
+  document.getElementById('batch-credit').textContent = `할인가 ${discounted}크레딧 (정가 ${basePrice})`;
+}
+
+async function handleBatchGenerate() {
+  if (batchRunning) return;
+  const keys = [...batchChecked];
+  if (keys.length === 0 && !batchThumbChecked) return;
+  for (const key of keys) {
+    const cell = cellData[key];
+    if (!cell || !cell.name) { highlightEmpty(key); alert('모든 항목에 이름을 입력해주세요.'); return; }
+  }
+  const basePrice = (keys.length * AI_IMAGE.SET.CREDITS) + (batchThumbChecked ? AI_IMAGE.THUMBNAIL.CREDITS : 0);
+  const discounted = Math.ceil(basePrice * (1 - batchDiscount));
+  if (!confirm(`${keys.length}개 항목${batchThumbChecked ? ' + 썸네일' : ''}을 일괄 생성할까요? (${discounted}크레딧)`)) return;
+
+  batchRunning = true;
+  const btn = document.getElementById('btn-batch-generate');
+  const prog = document.getElementById('batch-progress');
+  btn.disabled = true;
+  prog.style.display = '';
+  let done = 0;
+  const total = keys.length + (batchThumbChecked ? 1 : 0);
+
+  for (const key of keys) {
+    const cell = cellData[key];
+    prog.textContent = `${done + 1}/${total} 생성 중...`;
+    try {
+      const { blob } = await generateSetImage(cell.name, cell.description || '');
+      const url = URL.createObjectURL(blob);
+      if (cell.images?.[0]) { imageBlobs.delete(cell.images[0]); URL.revokeObjectURL(cell.images[0]); }
+      if (!cell.images) cell.images = [];
+      cell.images = [url];
+      imageBlobs.set(url, blob);
+    } catch (err) { alert(`${cell.name || key} 생성 실패: ${err.message}`); }
+    done++;
+  }
+
+  if (batchThumbChecked) {
+    prog.textContent = `${done + 1}/${total} 썸네일 생성 중...`;
+    try {
+      const title = document.getElementById('game-title')?.value?.trim() || '게임';
+      const desc = document.getElementById('game-description')?.value?.trim() || '';
+      const budget = `${document.getElementById('budget-value')?.value || '0'}${document.getElementById('budget-unit')?.value || '만원'}`;
+      const { blob } = await generateThumbnailImage(title, desc, document.getElementById('budget-value')?.value || '0', document.getElementById('budget-unit')?.value || '만원');
+      thumbnailBlob = blob;
+      const url = URL.createObjectURL(blob);
+      document.getElementById('thumbnail-preview').classList.remove('d-none');
+      document.getElementById('thumbnail-img').src = url;
+    } catch (err) { alert('썸네일 생성 실패: ' + err.message); }
+    done++;
+  }
+
+  prog.textContent = '완료!';
+  rebuildTable();
+  batchRunning = false;
+  btn.disabled = false;
+  setTimeout(() => { prog.style.display = 'none'; }, 2000);
+}
+
 async function handleSubmit(e) {
   e.preventDefault();
 
@@ -815,6 +994,8 @@ async function handleSubmit(e) {
             name: s.name || '',
             description: s.description || '',
           }));
+          cellObj.randomTitle = cell.randomTitle || '';
+          cellObj.bgColor = cell.bgColor || '#f0f0f4';
           cellObj.name = '';
           cellObj.description = '';
           cellObj.images = [];
@@ -908,6 +1089,8 @@ async function handleSubmit(e) {
           const cellObj = { row: y, col: x };
           if (isRandomMode) {
             cellObj.sets = cell.sets || [];
+            cellObj.randomTitle = cell.randomTitle || '';
+            cellObj.bgColor = cell.bgColor || '#f0f0f4';
           } else {
             cellObj.name = cell.name || '';
             cellObj.description = cell.description || '';

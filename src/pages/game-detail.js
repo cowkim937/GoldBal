@@ -239,7 +239,7 @@ function renderGameTable(game) {
                style="cursor:pointer;${isSelected ? 'border-width:3px;' : ''}overflow:hidden;">
             <div class="position-relative" style="height:150px;">
               ${isRandom 
-                ? `<div class="d-flex align-items-center justify-content-center h-100 bg-light"><span class="text-muted fw-bold" style="font-size:32px">???</span></div>`
+                ? `<div class="d-flex align-items-center justify-content-center h-100" style="background:${cell.bgColor || '#f0f0f4'};"><span class="text-muted fw-bold" style="font-size:32px">${cell.randomTitle || '???'}</span></div>`
                 : (cell.images?.[0] 
                     ? `<img src="${cell.images[0]}" class="w-100 h-100" style="object-fit:cover;" alt="">`
                     : `<div class="d-flex align-items-center justify-content-center h-100 bg-light"><span class="text-muted small">이미지 없음</span></div>`)
