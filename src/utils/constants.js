@@ -78,7 +78,7 @@ export const PAGE_SIZE = 24;
 /** AI 이미지 생성 설정 */
 export const AI_IMAGE = {
   SET: {
-    SIZE: '480x320',
+    SIZE: '1024x1024',
     QUALITY: 'low',
     CREDITS: 3,
   },

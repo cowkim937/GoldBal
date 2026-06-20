@@ -57,8 +57,11 @@ async function handleGenerateImage(request, env) {
       return json({ error: '프롬프트는 필수입니다.' }, 400);
     }
 
-    const imageSize = size || '1024x1024';
-    const imageQuality = quality || 'standard';
+    const VALID_SIZES = ['1024x1024', '1024x1536', '1536x1024', 'auto'];
+    const VALID_QUALITIES = ['low', 'medium', 'high', 'auto'];
+
+    const imageSize = VALID_SIZES.includes(size) ? size : '1024x1024';
+    const imageQuality = VALID_QUALITIES.includes(quality) ? quality : 'auto';
 
     const openaiRes = await fetch('https://api.openai.com/v1/images/generations', {
       method: 'POST',
@@ -72,7 +75,6 @@ async function handleGenerateImage(request, env) {
         n: 1,
         size: imageSize,
         quality: imageQuality,
-        response_format: 'b64_json',
       }),
     });
 
