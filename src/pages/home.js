@@ -106,24 +106,10 @@ export async function homePage(container) {
   }
 
   function renderGameTableCard(game) {
-    const x = Math.min(game.xCount || 4, 4);
-    const y = Math.min(game.yCount || 3, 3);
-
-    let miniTable = '<table class="table table-sm table-borderless mb-0 small" style="font-size:0.65rem">';
-    for (let row = 0; row < y; row++) {
-      miniTable += '<tr>';
-      for (let col = 0; col < x; col++) {
-        const cell = game.cells?.find((c) => c.row === row && c.col === col);
-        miniTable += `<td class="text-center p-1 border rounded ${cell?.name ? 'bg-light' : ''}" style="min-width:28px">${cell?.name?.[0] || '·'}</td>`;
-      }
-      miniTable += '</tr>';
-    }
-    miniTable += '</table>';
-
     return `
       <div class="col">
         <div class="card game-table-card h-100 border-0 shadow-sm" data-game-id="${game.id}" style="cursor:pointer">
-          <div class="card-img-wrapper" style="height:120px;overflow:hidden;background:#f0f0f0;">
+          <div class="card-img-wrapper" style="height:240px;overflow:hidden;background:#f0f0f0;">
             <img src="${game.thumbnailUrl || '/placeholder-game.svg'}" class="w-100 h-100" style="object-fit:cover;" alt="${game.title || ''}" loading="lazy" onerror="this.src='/placeholder-game.svg'">
           </div>
           <div class="card-body p-3">
@@ -131,7 +117,6 @@ export async function homePage(container) {
               <h6 class="card-title fw-bold text-truncate mb-0" style="max-width:70%">${game.title || '제목 없음'}</h6>
               <span class="badge bg-primary">${game.budgetValue || 0}${game.budgetUnit || ''}</span>
             </div>
-            <div class="mb-2">${miniTable}</div>
             <div class="d-flex justify-content-between align-items-center">
               <span class="badge bg-secondary bg-opacity-25 text-dark small">${game.topic || '기타'}</span>
               <div class="d-flex gap-2 small text-muted">
