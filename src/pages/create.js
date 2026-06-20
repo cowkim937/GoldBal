@@ -87,6 +87,8 @@ function prefillFromGame(game) {
   cellData['_budgetUnit'] = game.budgetUnit || '만원';
   cellData['_allowRemaining'] = game.allowRemainingBudget !== false;
   cellData['_thumbnailUrl'] = game.thumbnailUrl || '';
+  cellData['_isPrivate'] = game.isPrivate || false;
+  cellData['_password'] = game.password || '';
 
   for (let i = 0; i < xCount; i++) {
     cellData[`label_x_${i}`] = game.xLabels?.[i] || '';
@@ -219,8 +221,24 @@ function renderForm(container, isEdit) {
                 <div class="mb-3">
                   <div class="row g-2 mb-3" id="x-labels"></div>
                   <div class="row g-2 mb-3" id="y-labels"></div>
+                  </div>
                 </div>
-                <div class="table-responsive" id="table-builder"></div>
+              </div>
+            </div>
+
+            <div class="card shadow-sm mb-4">
+              <div class="card-body p-4">
+                <h5 class="fw-bold mb-3">🔒 공개 설정</h5>
+                <div class="form-check mb-3">
+                  <input class="form-check-input" type="checkbox" id="is-private" ${cellData['_isPrivate'] ? 'checked' : ''}>
+                  <label class="form-check-label fw-medium" for="is-private">비공개 게임</label>
+                  <div class="small text-muted">체크 시 홈/탐색에 노출되지 않고 링크로만 입장 가능</div>
+                </div>
+                <div id="password-field" class="${cellData['_isPrivate'] ? '' : 'd-none'}">
+                  <label class="form-label fw-medium">비밀번호</label>
+                  <input type="text" class="form-control" id="game-password" placeholder="비밀번호를 입력하세요" maxlength="20" value="${cellData['_password'] || ''}">
+                  <div class="small text-muted mt-1">게임 입장 시 필요한 비밀번호</div>
+                </div>
               </div>
             </div>
 
@@ -287,6 +305,16 @@ function setupCreatePage() {
   randomModeCheck.addEventListener('change', () => {
     isRandomMode = randomModeCheck.checked;
     rebuildTable();
+  });
+
+  document.getElementById('is-private')?.addEventListener('change', () => {
+    const pwField = document.getElementById('password-field');
+    const checked = document.getElementById('is-private').checked;
+    if (checked) {
+      pwField.classList.remove('d-none');
+    } else {
+      pwField.classList.add('d-none');
+    }
   });
 
   document.getElementById('budget-value').addEventListener('input', updatePreview);
@@ -819,6 +847,8 @@ async function handleSubmit(e) {
       yLabels,
       cells,
       thumbnailUrl: editMode ? (cellData['_thumbnailUrl'] || '') : '',
+      isPrivate: document.getElementById('is-private').checked || false,
+      password: document.getElementById('is-private').checked ? (document.getElementById('game-password').value.trim() || '') : '',
     };
     if (!editMode) gameData.createdBy = user.uid;
 

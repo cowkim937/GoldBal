@@ -66,6 +66,14 @@
         { "fieldPath": "topic", "order": "ASCENDING" },
         { "fieldPath": "viewCount", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "plays",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "gameId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

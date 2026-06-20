@@ -64,7 +64,12 @@ export async function searchPage(container) {
 
       if (results.length > 0) {
         const grid = document.getElementById('games-grid');
-        results.forEach((game) => grid.appendChild(createGameCard(game)));
+        const publicGames = results.filter((g) => !g.isPrivate);
+        if (publicGames.length > 0) {
+          publicGames.forEach((game) => grid.appendChild(createGameCard(game)));
+        } else {
+          document.getElementById('search-empty').style.display = '';
+        }
       } else {
         document.getElementById('search-empty').style.display = '';
       }

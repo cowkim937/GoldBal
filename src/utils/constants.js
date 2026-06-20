@@ -61,6 +61,7 @@ export const ROUTES = {
   HOME: '/',
   CREATE: '/create',
   GAME_DETAIL: '/game/',
+  GAME_RESULTS: '/game/:id/results',
   PROFILE: '/profile/',
   SEARCH: '/search',
   PRIVACY: '/privacy',

@@ -1,6 +1,7 @@
 import { getGame, incrementViewCount, incrementPlayCount, deleteGame } from '../services/game-service.js';
 import { toggleLike, checkLike } from '../services/like-service.js';
 import { savePlayResult } from '../services/play-service.js';
+import { getGameStats } from '../services/stats-service.js';
 import { getCurrentUser } from '../services/auth-service.js';
 import { setMetaTags } from '../utils/seo.js';
 import { navigateTo } from '../utils/router.js';
@@ -8,6 +9,8 @@ import { navigateTo } from '../utils/router.js';
 let selectedCells = {};
 let currentGame = null;
 let totalSpent = 0;
+
+function getPwKey(gameId) { return `hwangbal_pw_${gameId}`; }
 
 export async function gameDetailPage(container, params) {
   const gameId = params.id;
@@ -30,6 +33,11 @@ export async function gameDetailPage(container, params) {
       return () => {};
     }
 
+    if (currentGame.isPrivate && sessionStorage.getItem(getPwKey(gameId)) !== currentGame.password) {
+      renderPasswordGate(container, currentGame);
+      return () => { currentGame = null; selectedCells = {}; totalSpent = 0; };
+    }
+
     incrementViewCount(gameId);
     selectedCells = {};
     totalSpent = 0;
@@ -40,6 +48,43 @@ export async function gameDetailPage(container, params) {
   }
 
   return () => { currentGame = null; selectedCells = {}; totalSpent = 0; };
+}
+
+function renderPasswordGate(container, game) {
+  container.innerHTML = `
+    <div class="container py-5">
+      <div class="row justify-content-center">
+        <div class="col-md-5">
+          <div class="card shadow-sm">
+            <div class="card-body p-5 text-center">
+              <h3 class="fw-bold mb-3">🔒 비공개 게임</h3>
+              <p class="text-muted mb-4">"${game.title}"은 비공개 게임이에요.<br>비밀번호를 입력해야 입장할 수 있어요.</p>
+              <input type="password" class="form-control form-control-lg text-center mb-3" id="pw-input" placeholder="비밀번호" maxlength="20">
+              <div class="text-danger small mb-3 d-none" id="pw-error">비밀번호가 일치하지 않아요.</div>
+              <button class="btn btn-primary w-100 py-2" id="btn-pw-submit">입장하기</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('btn-pw-submit').addEventListener('click', () => {
+    const input = document.getElementById('pw-input').value.trim();
+    if (input === game.password) {
+      sessionStorage.setItem(getPwKey(game.id), input);
+      incrementViewCount(game.id);
+      selectedCells = {};
+      totalSpent = 0;
+      renderGame(container, game);
+    } else {
+      document.getElementById('pw-error').classList.remove('d-none');
+    }
+  });
+
+  document.getElementById('pw-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('btn-pw-submit').click();
+  });
 }
 
 function renderGame(container, game) {
@@ -137,6 +182,24 @@ function renderGame(container, game) {
             </div>
           </div>
         </div>
+
+        ${isGameOwner(game) ? `
+        <div class="card shadow-sm mb-4">
+          <div class="card-body p-4">
+            <h5 class="fw-bold mb-3">📎 공유 / 설정</h5>
+            <a href="/game/${game.id}/results" class="btn btn-outline-primary btn-sm w-100 mb-2" data-link>📊 응답 통계 보기</a>
+            ${game.isPrivate ? `
+            <div class="mb-2"><label class="small text-muted">공유 링크</label>
+              <div class="input-group input-group-sm"><input type="text" class="form-control" value="${window.location.href}" id="share-link" readonly><button class="btn btn-outline-secondary" id="btn-copy-link">복사</button></div>
+            </div>
+            <div><label class="small text-muted">비밀번호</label>
+              <div class="input-group input-group-sm"><input type="password" class="form-control" value="${game.password}" id="share-pw" readonly style="cursor:pointer"><button class="btn btn-outline-secondary" id="btn-copy-pw">복사</button></div>
+              <div class="small text-muted mt-1">비밀번호 위에 마우스를 올리면 보여요</div>
+            </div>
+            ` : `<div class="small text-muted">공개 게임 — 누구나 참여 가능</div>`}
+          </div>
+        </div>
+        ` : ''}
       </div>
     </div>
   `;
@@ -239,6 +302,24 @@ function setupGameEvents(game) {
   const deleteBtn = document.getElementById('btn-delete-game');
   if (deleteBtn) {
     deleteBtn.addEventListener('click', () => handleDeleteGame(game));
+  }
+
+  document.getElementById('btn-copy-link')?.addEventListener('click', () => {
+    const el = document.getElementById('share-link');
+    navigator.clipboard.writeText(el.value).then(() => alert('링크가 복사되었어요!')).catch(() => {});
+  });
+
+  document.getElementById('btn-copy-pw')?.addEventListener('click', () => {
+    const el = document.getElementById('share-pw');
+    navigator.clipboard.writeText(el.value).then(() => alert('비밀번호가 복사되었어요!')).catch(() => {});
+  });
+
+  const pwInput = document.getElementById('share-pw');
+  if (pwInput) {
+    pwInput.addEventListener('mouseenter', () => { pwInput.type = 'text'; });
+    pwInput.addEventListener('mouseleave', () => { pwInput.type = 'password'; });
+    pwInput.addEventListener('focus', () => { pwInput.type = 'text'; });
+    pwInput.addEventListener('blur', () => { pwInput.type = 'password'; });
   }
 }
 
@@ -408,16 +489,31 @@ function showSimpleModal({ title, body, type }) {
   document.getElementById(id).addEventListener('hidden.bs.modal', () => container.remove());
 }
 
-function showResultModal(game, selections) {
+async function showResultModal(game, selections) {
   const existing = document.getElementById('result-modal-container');
   if (existing) existing.remove();
 
   const container = document.createElement('div');
   container.id = 'result-modal-container';
 
+  let stats = null;
+  try { stats = await getGameStats(game.id); } catch (e) { /* ignore */ }
+
   const shareText = selections
     .map((s) => `${s.yLabel}: ${s.name || s.xLabel}`)
     .join('\n');
+
+  function getComparison(s) {
+    if (!stats) return '';
+    const rowStat = stats.rowStats.find((r) => r.y === s.row);
+    if (!rowStat) return '';
+    const total = rowStat.total || 1;
+    const colStat = rowStat.cols.find((c) => c.col === s.col);
+    if (!colStat) return '';
+    const pct = Math.round((colStat.count / total) * 100);
+    const others = total - colStat.count;
+    return `<div class="text-center mt-2"><div class="progress" style="height:6px"><div class="progress-bar bg-success" style="width:${pct}%"></div></div><div class="small text-muted mt-1">같은 선택을 한 사람: <strong>${colStat.count}명</strong> (${pct}%) / 다른 선택: ${others}명</div></div>`;
+  }
 
   container.innerHTML = `
     <div class="modal fade" id="result-modal" tabindex="-1">
@@ -429,6 +525,7 @@ function showResultModal(game, selections) {
           </div>
           <div class="modal-body">
             <h4 class="text-center fw-bold mb-4">${game.title}</h4>
+            ${stats ? `<div class="text-center mb-3"><span class="badge bg-info">총 ${stats.participantCount}명 참여</span></div>` : ''}
             <div class="row g-3 mb-4">
               ${selections.map((s) => `
                 <div class="col-md-6">
@@ -441,6 +538,7 @@ function showResultModal(game, selections) {
                         ${s.description ? `<div class="text-white-50" style="font-size:0.75rem;">${s.description}</div>` : ''}
                       </div>
                     </div>
+                    ${getComparison(s)}
                     ${s.price ? `<div class="text-center py-1 bg-primary bg-opacity-10"><span class="small text-primary fw-bold">${s.price.toLocaleString()}${game.budgetUnit || ''}</span></div>` : ''}
                   </div>
                 </div>

@@ -15,6 +15,7 @@ import { updateAuthUI } from './components/Header.js';
 import { homePage } from './pages/home.js';
 import { createPage } from './pages/create.js';
 import { gameDetailPage } from './pages/game-detail.js';
+import { gameResultsPage } from './pages/game-results.js';
 import { profilePage } from './pages/profile.js';
 import { searchPage } from './pages/search.js';
 import { staticPage } from './pages/static.js';
@@ -55,6 +56,7 @@ async function initApp() {
   registerRoute(ROUTES.HOME, homePage);
   registerRoute(ROUTES.CREATE, createPage);
   registerRoute('/game/:id/edit', createPage);
+  registerRoute('/game/:id/results', gameResultsPage);
   registerRoute('/game/:id', gameDetailPage);
   registerRoute('/profile/:uid', profilePage);
   registerRoute(ROUTES.SEARCH, searchPage);

@@ -52,7 +52,7 @@ export async function homePage(container) {
   }
 
   function renderPage() {
-    const games = allGames[currentTab] || [];
+      const games = (allGames[currentTab] || []).filter((g) => !g.isPrivate);
     const totalPages = Math.max(1, Math.ceil(games.length / (ROWS_PER_PAGE * COLS_DESKTOP)));
     const start = currentPage * ROWS_PER_PAGE * COLS_DESKTOP;
     const pageGames = games.slice(start, start + ROWS_PER_PAGE * COLS_DESKTOP);
