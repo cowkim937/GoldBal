@@ -534,12 +534,14 @@ function rebuildTable() {
   let tableHtml = '<table class="table table-bordered align-middle"><thead><tr><th style="min-width:80px;"></th>';
   for (let x = 0; x < xCount; x++) {
     const price = cellData[`price_x_${x}`] || 0;
-    tableHtml += `<th class="text-center bg-light"><div class="small fw-bold" id="x-header-${x}">단계 ${x + 1}</div><div class="small text-primary">${price ? price.toLocaleString() : '0'}</div></th>`;
+    const label = cellData[`label_x_${x}`] || `단계 ${x + 1}`;
+    tableHtml += `<th class="text-center bg-light"><div class="small fw-bold" id="x-header-${x}">${label}</div><div class="small text-primary">${price ? price.toLocaleString() : '0'}</div></th>`;
   }
   tableHtml += '</tr></thead><tbody>';
 
   for (let y = 0; y < yCount; y++) {
-    tableHtml += `<tr><th class="bg-light align-middle text-nowrap"><span class="small" id="y-header-${y}">항목 ${y + 1}</span></th>`;
+    const yLabel = cellData[`label_y_${y}`] || `항목 ${y + 1}`;
+    tableHtml += `<tr><th class="bg-light align-middle text-nowrap"><span class="small" id="y-header-${y}">${yLabel}</span></th>`;
     for (let x = 0; x < xCount; x++) {
       const cellKey = `cell_${y}_${x}`;
       const cell = cellData[cellKey] || { name: '', description: '', images: [], sets: [] };

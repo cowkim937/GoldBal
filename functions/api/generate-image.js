@@ -100,7 +100,12 @@ async function handleGenerateImage(request, env) {
     if (!openaiRes.ok) {
       const errBody = await openaiRes.text();
       console.error('OpenAI API 오류:', openaiRes.status, errBody);
-      return json({ error: `이미지 생성에 실패했어요. (${openaiRes.status})` }, 502);
+      let errMsg = `이미지 생성에 실패했어요. (${openaiRes.status})`;
+      try {
+        const errJson = JSON.parse(errBody);
+        if (errJson.error?.message) errMsg = errJson.error.message;
+      } catch (_) { /* raw text */ }
+      return json({ error: errMsg }, 502);
     }
 
     const data = await openaiRes.json();
