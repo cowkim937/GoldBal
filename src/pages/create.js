@@ -181,9 +181,15 @@ function renderForm(container, isEdit) {
                   </div>
                   <div class="col-md-4">
                     <label class="form-label fw-medium">단위</label>
-                    <select class="form-select" id="budget-unit">
-                      ${BUDGET_UNITS.map((unit) => `<option value="${unit}" ${(cellData['_budgetUnit'] || '만원') === unit ? 'selected' : ''}>${unit}</option>`).join('')}
-                    </select>
+                    <div class="input-group">
+                      <select class="form-select" id="budget-unit-select">
+                        ${BUDGET_UNITS.map((unit) => `<option value="${unit}" ${(cellData['_budgetUnit'] || '만원') === unit ? 'selected' : ''}>${unit}</option>`).join('')}
+                        <option value="custom" ${!BUDGET_UNITS.includes(cellData['_budgetUnit']) && cellData['_budgetUnit'] ? 'selected' : ''}>직접 입력</option>
+                      </select>
+                      <span id="unit-custom-wrap" style="display:${!BUDGET_UNITS.includes(cellData['_budgetUnit']) && cellData['_budgetUnit'] ? '' : 'none'}">
+                        <input type="text" class="form-control" id="budget-unit" placeholder="단위 입력" value="${!BUDGET_UNITS.includes(cellData['_budgetUnit']) ? (cellData['_budgetUnit'] || '') : ''}" maxlength="10">
+                      </span>
+                    </div>
                   </div>
                   <div class="col-md-4">
                     <div class="form-check mb-2">
@@ -354,7 +360,21 @@ function setupCreatePage() {
   });
 
   document.getElementById('budget-value').addEventListener('input', updatePreview);
-  document.getElementById('budget-unit').addEventListener('change', updatePreview);
+  document.getElementById('budget-unit').addEventListener('input', updatePreview);
+  document.getElementById('budget-unit-select').addEventListener('change', () => {
+    const sel = document.getElementById('budget-unit-select');
+    const input = document.getElementById('budget-unit');
+    const wrap = document.getElementById('unit-custom-wrap');
+    if (sel.value === 'custom') {
+      input.value = '';
+      wrap.style.display = '';
+      input.focus();
+    } else {
+      input.value = sel.value;
+      wrap.style.display = 'none';
+    }
+    updatePreview();
+  });
 
   document.getElementById('thumbnail-input').addEventListener('change', handleThumbnailPreview);
 
