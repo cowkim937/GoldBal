@@ -20,6 +20,10 @@ export default {
       return handleFirebaseConfig(env);
     }
 
+    if (url.pathname === '/api/openai-config' && request.method === 'GET') {
+      return handleOpenAIConfig(env);
+    }
+
     if (url.pathname === '/api/generate-image' && request.method === 'POST') {
       return handleGenerateImage(request, env);
     }
@@ -27,6 +31,18 @@ export default {
     return env.ASSETS.fetch(request);
   },
 };
+
+function handleOpenAIConfig(env) {
+  const config = {
+    apiKey: env.OPENAI_API_KEY || '',
+    projectId: env.OPENAI_PROJECT_ID || '',
+    gateway: env.OPENAI_GATEWAY || '',
+  };
+  if (!config.apiKey) {
+    return json({ error: 'OpenAI 설정이 등록되지 않았습니다.' }, 503);
+  }
+  return json(config, 200);
+}
 
 function handleHealth(env) {
   const status = {

@@ -1,39 +1,49 @@
 import { getCredits, deductCredit } from './credit-service.js';
-import { getCurrentUser, onUserChange, updateUserCredits } from './auth-service.js';
+import { getCurrentUser, updateUserCredits } from './auth-service.js';
 import { AI_IMAGE } from '../utils/constants.js';
 
-const API_BASE = '/api/generate-image';
+let openaiConfig = null;
+
+async function getOpenAIConfig() {
+  if (openaiConfig) return openaiConfig;
+  const res = await fetch('/api/openai-config');
+  if (!res.ok) throw new Error('OpenAI 설정을 불러올 수 없어요.');
+  openaiConfig = await res.json();
+  return openaiConfig;
+}
 
 async function callGenerateImage(prompt, size, quality) {
-  let res;
-  try {
-    res = await fetch(API_BASE, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt, size, quality }),
-    });
-  } catch (err) {
-    console.error('AI 이미지 API 호출 실패 (네트워크):', err.message);
-    throw new Error('서버에 연결할 수 없어요. /api/health 를 확인해주세요.');
+  const config = await getOpenAIConfig();
+
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${config.apiKey}`,
+  };
+  if (config.projectId) {
+    headers['OpenAI-Project'] = config.projectId;
   }
 
-  let data;
-  try {
-    data = await res.json();
-  } catch (err) {
-    console.error('AI 이미지 API 응답 파싱 실패:', err.message);
-    throw new Error('서버 응답을 처리할 수 없어요. 잠시 후 다시 시도해주세요.');
-  }
+  const res = await fetch('https://api.openai.com/v1/images/generations', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      model: 'gpt-image-1-mini',
+      prompt: prompt.trim(),
+      n: 1,
+      size,
+      quality,
+    }),
+  });
 
+  const data = await res.json();
   if (!res.ok) {
-    console.error('AI 이미지 API 오류:', res.status, data);
-    throw new Error(data.error || `이미지 생성에 실패했어요. (${res.status})`);
+    const msg = data.error?.message || `이미지 생성에 실패했어요. (${res.status})`;
+    throw new Error(msg);
   }
-
   return data;
 }
 
-function base64ToBlob(base64, mimeType = 'image/png') {
+function base64ToBlob(base64) {
   const byteChars = atob(base64);
   const byteArrays = [];
   for (let offset = 0; offset < byteChars.length; offset += 512) {
@@ -44,10 +54,10 @@ function base64ToBlob(base64, mimeType = 'image/png') {
     }
     byteArrays.push(new Uint8Array(byteNumbers));
   }
-  return new Blob(byteArrays, { type: mimeType });
+  return new Blob(byteArrays, { type: 'image/png' });
 }
 
-async function checkAndDeduct(uid, required, label) {
+async function checkAndDeduct(uid, required) {
   const current = await getCredits(uid);
   if (current < required) {
     throw new Error(`크레딧이 부족해요.\n(보유: ${current}, 필요: ${required})\n크레딧 충전이 필요합니다.`);
@@ -62,16 +72,14 @@ export async function generateSetImage(name, description) {
   if (!user) throw new Error('로그인이 필요해요.');
 
   const { SIZE, QUALITY, CREDITS } = AI_IMAGE.SET;
-
-  const remaining = await checkAndDeduct(user.uid, CREDITS, '세트 이미지');
+  const remaining = await checkAndDeduct(user.uid, CREDITS);
 
   let prompt = `밸런스 게임 아이템 이미지. "${name}" 항목.`;
   if (description) prompt += ` 설명: ${description}.`;
   prompt += ' 상품 카탈로그 스타일의 깔끔한 일러스트. 배경은 심플하게.';
 
   const data = await callGenerateImage(prompt, SIZE, QUALITY);
-  const blob = base64ToBlob(data.base64);
-
+  const blob = base64ToBlob(data.data[0].b64_json);
   return { blob, remaining };
 }
 
@@ -80,8 +88,7 @@ export async function generateThumbnailImage(title, description, budgetValue, bu
   if (!user) throw new Error('로그인이 필요해요.');
 
   const { SIZE, QUALITY, CREDITS } = AI_IMAGE.THUMBNAIL;
-
-  const remaining = await checkAndDeduct(user.uid, CREDITS, '썸네일');
+  const remaining = await checkAndDeduct(user.uid, CREDITS);
 
   let prompt = `밸런스 게임 '${title}'의 썸네일 배너 이미지.`;
   if (description) prompt += ` 게임 설명: ${description}.`;
@@ -89,8 +96,7 @@ export async function generateThumbnailImage(title, description, budgetValue, bu
   prompt += ' 게임의 분위기를 담은 화려한 배너 스타일. 한국어 텍스트 없이 이미지만 생성.';
 
   const data = await callGenerateImage(prompt, SIZE, QUALITY);
-  const blob = base64ToBlob(data.base64);
-
+  const blob = base64ToBlob(data.data[0].b64_json);
   return { blob, remaining };
 }
 
