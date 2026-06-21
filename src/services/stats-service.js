@@ -4,6 +4,7 @@ import {
   getDocs,
   query,
   where,
+  orderBy,
 } from '../firebase/firestore.js';
 import { getGame } from './game-service.js';
 import { COLLECTIONS } from '../utils/constants.js';
@@ -11,21 +12,55 @@ import { COLLECTIONS } from '../utils/constants.js';
 async function getGamePlays(gameId) {
   const q = query(
     collection(getDb(), COLLECTIONS.PLAYS),
-    where('gameId', '==', gameId)
+    where('gameId', '==', gameId),
+    orderBy('createdAt', 'asc')
   );
   const snapshot = await getDocs(q);
-  return snapshot.docs.map((d) => d.data());
+  const plays = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+  plays.reverse();
+  return plays;
+}
+
+function deduplicatePlays(plays) {
+  const seen = new Map();
+  const result = [];
+  for (const play of plays) {
+    if (play.userId === 'anonymous' || play.userId === undefined) {
+      result.push(play);
+    } else {
+      seen.set(play.userId, play);
+    }
+  }
+  for (const play of seen.values()) {
+    result.push(play);
+  }
+  return result;
+}
+
+function countUniqueUsers(plays) {
+  const users = new Set();
+  for (const play of plays) {
+    if (play.userId && play.userId !== 'anonymous') {
+      users.add(play.userId);
+    }
+  }
+  return users.size;
 }
 
 export async function getGameStats(gameId) {
-  const [game, plays] = await Promise.all([
+  const [game, rawPlays] = await Promise.all([
     getGame(gameId),
     getGamePlays(gameId),
   ]);
 
   if (!game) return null;
 
-  const participantCount = plays.length;
+  const allowDup = game.allowDuplicatePlays !== false;
+  const plays = allowDup ? rawPlays : deduplicatePlays(rawPlays);
+  const uniqueUsers = countUniqueUsers(rawPlays);
+  const anonCount = rawPlays.filter((p) => !p.userId || p.userId === 'anonymous').length;
+  const participantCount = allowDup ? plays.length : uniqueUsers + anonCount;
+
   const rowStats = [];
 
   for (let y = 0; y < game.yCount; y++) {
@@ -67,6 +102,7 @@ export async function getGameStats(gameId) {
     game,
     participantCount,
     playCount: game.playCount || 0,
+    allowDuplicatePlays: allowDup,
     rowStats,
   };
 }

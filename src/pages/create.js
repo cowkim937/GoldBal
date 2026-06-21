@@ -95,6 +95,7 @@ function prefillFromGame(game) {
   cellData['_budgetValue'] = game.budgetValue || 1;
   cellData['_budgetUnit'] = game.budgetUnit || '만원';
   cellData['_allowRemaining'] = game.allowRemainingBudget !== false;
+  cellData['_allowDuplicate'] = game.allowDuplicatePlays !== false;
   cellData['_thumbnailUrl'] = game.thumbnailUrl || '';
   cellData['_isPrivate'] = game.isPrivate || false;
   cellData['_password'] = game.password || '';
@@ -185,6 +186,11 @@ function renderForm(container, isEdit) {
                     </select>
                   </div>
                   <div class="col-md-4">
+                    <div class="form-check mb-2">
+                      <input class="form-check-input" type="checkbox" id="allow-duplicate" ${cellData['_allowDuplicate'] !== false ? 'checked' : ''}>
+                      <label class="form-check-label fw-medium" for="allow-duplicate">중복 집계</label>
+                      <div class="small text-muted">해제 시 가입자는 가장 최근 1회만 집계</div>
+                    </div>
                     <div class="form-check mb-2">
                       <input class="form-check-input" type="checkbox" id="random-mode" ${isRandomMode ? 'checked' : ''}>
                       <label class="form-check-label fw-medium" for="random-mode">랜덤 모드</label>
@@ -1021,6 +1027,7 @@ async function handleSubmit(e) {
       budgetUnit: document.getElementById('budget-unit').value || '만원',
       randomMode: document.getElementById('random-mode').checked,
       allowRemainingBudget: document.getElementById('allow-remaining').checked,
+      allowDuplicatePlays: document.getElementById('allow-duplicate').checked !== false,
       priceRow,
       xCount,
       yCount,

@@ -17,7 +17,7 @@ export async function gameResultsPage(container, params) {
       return () => {};
     }
 
-    const { game, participantCount, playCount, rowStats } = stats;
+    const { game, participantCount, playCount, allowDuplicatePlays, rowStats } = stats;
     const isOwner = user && user.uid === game.createdBy;
 
     setMetaTags({ title: `${game.title} - 통계` });
@@ -25,7 +25,7 @@ export async function gameResultsPage(container, params) {
     let html = `<div class="container py-4">`;
     html += `<div class="d-flex justify-content-between align-items-center mb-4"><div><h2 class="fw-bold mb-1">${game.title}</h2><p class="text-muted mb-0">📊 응답 통계</p></div><a href="/game/${gameId}" class="btn btn-outline-primary" data-link>게임으로 돌아가기</a></div>`;
 
-    html += `<div class="row g-3 mb-4"><div class="col-md-4"><div class="card shadow-sm text-center p-3"><div class="h2 fw-bold text-primary">${participantCount}</div><div class="text-muted small">참여자</div></div></div><div class="col-md-4"><div class="card shadow-sm text-center p-3"><div class="h2 fw-bold text-primary">${playCount}</div><div class="text-muted small">총 플레이</div></div></div></div>`;
+    html += `<div class="row g-3 mb-4"><div class="col-md-4"><div class="card shadow-sm text-center p-3"><div class="h2 fw-bold text-primary">${participantCount}</div><div class="text-muted small">참여자</div></div></div><div class="col-md-4"><div class="card shadow-sm text-center p-3"><div class="h2 fw-bold text-primary">${playCount}</div><div class="text-muted small">총 플레이</div></div></div><div class="col-md-4"><div class="card shadow-sm text-center p-3 d-flex align-items-center justify-content-center"><span class="badge ${allowDuplicatePlays ? 'bg-info' : 'bg-warning text-dark'} fs-6">${allowDuplicatePlays ? '🔄 중복 집계' : '☝️ 1인 1표'}</span></div></div></div>`;
 
     for (const row of rowStats) {
       const maxCount = Math.max(...row.cols.map((c) => c.count), 1);
