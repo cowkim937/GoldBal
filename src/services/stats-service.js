@@ -13,26 +13,22 @@ async function getGamePlays(gameId) {
   const q = query(
     collection(getDb(), COLLECTIONS.PLAYS),
     where('gameId', '==', gameId),
-    orderBy('createdAt', 'asc')
+    orderBy('createdAt', 'desc')
   );
   const snapshot = await getDocs(q);
-  const plays = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
-  plays.reverse();
-  return plays;
+  return snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
 
 function deduplicatePlays(plays) {
-  const seen = new Map();
+  const seen = new Set();
   const result = [];
   for (const play of plays) {
-    if (play.userId === 'anonymous' || play.userId === undefined) {
+    if (play.userId === 'anonymous' || !play.userId) {
       result.push(play);
-    } else {
-      seen.set(play.userId, play);
+    } else if (!seen.has(play.userId)) {
+      seen.add(play.userId);
+      result.push(play);
     }
-  }
-  for (const play of seen.values()) {
-    result.push(play);
   }
   return result;
 }
