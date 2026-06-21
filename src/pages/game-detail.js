@@ -126,8 +126,8 @@ function renderGame(container, game) {
             <div class="d-flex flex-wrap gap-2 mb-4">
               <span class="badge bg-primary fs-6">${budgetDisplay}</span>
               <span class="badge bg-secondary fs-6">${game.topic || '기타'}</span>
-              ${game.randomMode ? '<span class="badge bg-warning text-dark fs-6">🎲 랜덤</span>' : ''}
-              ${hasPrices ? '<span class="badge bg-info fs-6">💰 가격제</span>' : ''}
+              ${game.randomMode ? `<span class="badge bg-warning text-dark fs-6" style="cursor:pointer" data-info="random">🎲 랜덤모드</span>` : ''}
+              ${hasPrices ? `<span class="badge bg-info fs-6" style="cursor:pointer" data-info="price">💰 예산다쓰기</span>` : ''}
             </div>
 
             <div class="game-table" id="game-table">
@@ -321,6 +321,19 @@ function setupGameEvents(game) {
     pwInput.addEventListener('focus', () => { pwInput.type = 'text'; });
     pwInput.addEventListener('blur', () => { pwInput.type = 'password'; });
   }
+
+  document.querySelectorAll('[data-info]').forEach((badge) => {
+    badge.addEventListener('click', () => {
+      const type = badge.dataset.info;
+      const info = {
+        random: { title: '🎲 랜덤모드', body: '각 칸에 여러 개의 이미지/이름 세트를 등록하고, 플레이할 때마다 무작위로 하나가 선택돼요. 플레이어는 결과를 보기 전까지 어떤 게 나올지 몰라요!' },
+        price: { title: '💰 예산다쓰기', body: '각 선택지에 가격이 있어요. 총예산을 넘지 않으면서 최고의 조합을 골라야 해요. 예산을 딱 맞춰 다 써야만 하는 게임이 될 수도 있어요.' },
+      };
+      const item = info[type];
+      if (!item) return;
+      showSimpleModal({ title: item.title, body: `<p class="mb-0">${item.body}</p>`, type: 'primary' });
+    });
+  });
 }
 
 function updateBudgetDisplay(game) {
