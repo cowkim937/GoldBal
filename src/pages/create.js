@@ -543,7 +543,9 @@ function showSetModal(cellKey) {
       btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>생성 중...';
 
       try {
-        const { blob, remaining } = await generateSetImage(name, description);
+        const gameTitle = document.getElementById('game-title')?.value?.trim() || '';
+        const gameDesc = document.getElementById('game-description')?.value?.trim() || '';
+        const { blob, remaining } = await generateSetImage(gameTitle, gameDesc, name, description);
         const url = URL.createObjectURL(blob);
         ensureSetAtIndex(cellKey, idx);
         if (cellData[cellKey].sets[idx].image) {
@@ -776,7 +778,9 @@ function rebuildTable() {
       btn.disabled = true;
       btn.textContent = '⏳';
       try {
-        const { blob } = await generateSetImage(cell.name, cell.description || '');
+        const gTitle = document.getElementById('game-title')?.value?.trim() || '';
+        const gDesc = document.getElementById('game-description')?.value?.trim() || '';
+        const { blob } = await generateSetImage(gTitle, gDesc, cell.name, cell.description || '');
         const url = URL.createObjectURL(blob);
         if (cell.images?.[0]) { imageBlobs.delete(cell.images[0]); URL.revokeObjectURL(cell.images[0]); }
         if (!cell.images) cell.images = [];
