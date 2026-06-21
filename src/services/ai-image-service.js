@@ -85,7 +85,7 @@ export async function generateSetImage(gameTitle, gameDesc, name, description) {
   const { SIZE, QUALITY, CREDITS } = AI_IMAGE.SET;
   const remaining = await checkAndDeduct(user.uid, CREDITS);
   const style = randomStyle();
-  const prompt = `[제목: ${gameTitle || '게임'}][설명: ${gameDesc || ''}][아이템: ${name}][설명: ${description || ''}][${style}] 위 정보를 바탕으로 밸런스 게임 아이템 이미지를 생성해줘.`;
+  const prompt = `[제목: ${gameTitle || '게임'}][설명: ${gameDesc || ''}][아이템: ${name}][설명: ${description || ''}][${style}] 위 정보를 바탕으로 아이템 이미지를 생성해줘.`;
   const data = await callGenerateImage(prompt, SIZE, QUALITY);
   const rawBlob = base64ToBlob(data.data[0].b64_json);
   const blob = await processImageFile(rawBlob);
@@ -98,7 +98,7 @@ export async function generateThumbnailImage(title, description, budgetValue, bu
   const { SIZE, QUALITY, CREDITS } = AI_IMAGE.THUMBNAIL;
   const remaining = await checkAndDeduct(user.uid, CREDITS);
   const style = randomStyle();
-  const prompt = `[제목: ${title}][설명: ${description || ''}][예산: ${budgetValue}${budgetUnit}][${style}] 위 정보를 바탕으로 밸런스 게임 썸네일 배너 이미지를 생성해줘. 한국어 텍스트 없이 이미지만 생성.`;
+  const prompt = `[제목: ${title}][설명: ${description || ''}][예산: ${budgetValue}${budgetUnit}][${style}] 위 정보를 바탕으로 썸네일 배너 이미지를 생성해줘. 한국어 텍스트 없이 이미지만 생성.`;
   const data = await callGenerateImage(prompt, SIZE, QUALITY);
   const rawBlob = base64ToBlob(data.data[0].b64_json);
   const blob = await processImageFile(rawBlob);

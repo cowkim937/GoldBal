@@ -23,7 +23,7 @@ export async function gameResultsPage(container, params) {
     setMetaTags({ title: `${game.title} - 통계` });
 
     let html = `<div class="container py-4">`;
-    html += `<div class="d-flex justify-content-between align-items-center mb-4"><div><h2 class="fw-bold mb-1">${game.title}</h2><p class="text-muted mb-0">📊 응답 통계</p></div><a href="/game/${gameId}" class="btn btn-outline-primary" data-link>게임으로 돌아가기</a></div>`;
+    html += `<div class="d-flex justify-content-between align-items-center mb-4"><div><h2 class="fw-bold mb-1">${game.title}</h2><p class="text-muted mb-0">📊 응답 통계</p></div><div class="d-flex gap-2"><button class="btn btn-outline-primary btn-sm" id="btn-share-stats">📋 공유</button><a href="/game/${gameId}" class="btn btn-outline-secondary btn-sm" data-link>게임으로</a></div></div>`;
 
     html += `<div class="row g-3 mb-4"><div class="col-md-4"><div class="card shadow-sm text-center p-3"><div class="h2 fw-bold text-primary">${participantCount}</div><div class="text-muted small">참여자</div></div></div><div class="col-md-4"><div class="card shadow-sm text-center p-3"><div class="h2 fw-bold text-primary">${playCount}</div><div class="text-muted small">총 플레이</div></div></div><div class="col-md-4"><div class="card shadow-sm text-center p-3 d-flex align-items-center justify-content-center"><span class="badge ${allowDuplicatePlays ? 'bg-info' : 'bg-warning text-dark'} fs-6">${allowDuplicatePlays ? '🔄 중복 집계' : '☝️ 1인 1표'}</span></div></div></div>`;
 
@@ -50,6 +50,10 @@ export async function gameResultsPage(container, params) {
 
     html += `</div>`;
     container.innerHTML = html;
+
+    document.getElementById('btn-share-stats')?.addEventListener('click', () => {
+      navigator.clipboard.writeText(window.location.href).then(() => alert('통계 링크가 복사되었어요!')).catch(() => {});
+    });
   } catch (err) {
     console.error('통계 로드 실패:', err);
     container.innerHTML = `<div class="container py-5 text-center"><h4>통계를 불러오지 못했어요</h4><a href="/" class="btn btn-primary mt-3" data-link>홈으로</a></div>`;

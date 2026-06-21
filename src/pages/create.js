@@ -246,7 +246,7 @@ function renderForm(container, isEdit) {
                   <div class="row g-2 mb-3" id="y-labels"></div>
                 </div>
                 <div class="table-responsive" id="table-builder"></div>
-                <div class="card shadow-sm mt-3" id="batch-bar" style="display:none;">
+                <div class="card shadow-sm mt-3" id="batch-bar">
                   <div class="card-body p-2">
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
                       <div>
@@ -928,21 +928,19 @@ function highlightEmpty(key) {
 }
 
 function updateBatchBar() {
-  const bar = document.getElementById('batch-bar');
   const totalCells = xCount * yCount;
-  const count = batchChecked.size + (batchThumbChecked ? 1 : 0);
   const selAll = document.getElementById('batch-select-all');
   if (selAll) {
     if (batchChecked.size === totalCells) { selAll.checked = true; selAll.indeterminate = false; }
     else if (batchChecked.size > 0) { selAll.checked = false; selAll.indeterminate = true; }
     else { selAll.checked = false; selAll.indeterminate = false; }
   }
-  if (count === 0) { bar.style.display = 'none'; return; }
-  bar.style.display = '';
-  document.getElementById('batch-count').textContent = `${count}개 선택`;
+  const count = batchChecked.size + (batchThumbChecked ? 1 : 0);
+  document.getElementById('batch-count').textContent = count > 0 ? `${count}개 선택` : '0개';
   const basePrice = (batchChecked.size * AI_IMAGE.SET.CREDITS) + (batchThumbChecked ? AI_IMAGE.THUMBNAIL.CREDITS : 0);
   const discounted = Math.ceil(basePrice * (1 - batchDiscount));
-  document.getElementById('batch-credit').textContent = `할인가 ${discounted}크레딧 (정가 ${basePrice})`;
+  document.getElementById('batch-credit').textContent = basePrice > 0 ? `할인가 ${discounted}크레딧 (정가 ${basePrice})` : '';
+  document.getElementById('btn-batch-generate').disabled = count === 0;
 }
 
 async function handleBatchGenerate() {
