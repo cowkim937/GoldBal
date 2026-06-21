@@ -67,7 +67,7 @@ async function handleGenerateImage(request, env) {
   const gateway = env.OPENAI_GATEWAY;
   const apiBase = gateway
     ? `https://gateway.ai.cloudflare.com/v1/${gateway}/openai`
-    : 'https://api.openai.com';
+    : 'https://api.openai.com/v1';
 
   try {
     const body = await request.json();
@@ -91,7 +91,7 @@ async function handleGenerateImage(request, env) {
       headers['OpenAI-Project'] = env.OPENAI_PROJECT_ID;
     }
 
-    const openaiRes = await fetch(`${apiBase}/v1/images/generations`, {
+    const openaiRes = await fetch(`${apiBase}/images/generations`, {
       method: 'POST',
       headers,
       body: JSON.stringify({
