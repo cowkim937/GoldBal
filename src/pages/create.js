@@ -250,6 +250,10 @@ function renderForm(container, isEdit) {
                   <div class="card-body p-2">
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
                       <div>
+                        <div class="form-check form-check-inline mb-0 me-2">
+                          <input class="form-check-input" type="checkbox" id="batch-select-all">
+                          <label class="form-check-label small" for="batch-select-all">전체선택</label>
+                        </div>
                         <span class="fw-bold small">📦 일괄 생성</span>
                         <span class="small text-muted ms-2" id="batch-count">0개</span>
                         <span class="small text-success ms-2" id="batch-credit"></span>
@@ -797,6 +801,16 @@ function rebuildTable() {
   });
 
   document.getElementById('btn-batch-generate')?.addEventListener('click', handleBatchGenerate);
+  document.getElementById('batch-select-all')?.addEventListener('change', function() {
+    const total = xCount * yCount;
+    if (this.checked) {
+      for (let y = 0; y < yCount; y++) for (let x = 0; x < xCount; x++) batchChecked.add(`cell_${y}_${x}`);
+    } else {
+      batchChecked.clear();
+    }
+    rebuildTable();
+    updateBatchBar();
+  });
   document.getElementById('batch-thumb')?.addEventListener('change', () => {
     batchThumbChecked = document.getElementById('batch-thumb').checked;
     updateBatchBar();
@@ -915,7 +929,14 @@ function highlightEmpty(key) {
 
 function updateBatchBar() {
   const bar = document.getElementById('batch-bar');
+  const totalCells = xCount * yCount;
   const count = batchChecked.size + (batchThumbChecked ? 1 : 0);
+  const selAll = document.getElementById('batch-select-all');
+  if (selAll) {
+    if (batchChecked.size === totalCells) { selAll.checked = true; selAll.indeterminate = false; }
+    else if (batchChecked.size > 0) { selAll.checked = false; selAll.indeterminate = true; }
+    else { selAll.checked = false; selAll.indeterminate = false; }
+  }
   if (count === 0) { bar.style.display = 'none'; return; }
   bar.style.display = '';
   document.getElementById('batch-count').textContent = `${count}개 선택`;
